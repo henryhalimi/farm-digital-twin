@@ -1,0 +1,242 @@
+.device-config-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 3000;
+}
+
+.device-config-dialog {
+  background: #2d2d2d;
+  border: 1px solid #444;
+  border-radius: 8px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6);
+  min-width: 320px;
+  max-width: 420px;
+  width: 100%;
+  color: #ccc;
+  font-size: 13px;
+  font-family: inherit;
+  overflow: hidden;
+}
+
+/* ── Header ─────────────────────────────────────────────────────────────── */
+.dcd-header {
+  background: #1a1a1a;
+  border-bottom: 1px solid #444;
+  padding: 10px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.dcd-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #fff;
+  margin: 0;
+}
+
+.dcd-fingerprint {
+  font-family: monospace;
+  font-size: 10px;
+  color: #666;
+}
+
+/* ── Body ───────────────────────────────────────────────────────────────── */
+.dcd-body {
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  max-height: 60vh;
+  overflow-y: auto;
+}
+
+/* ── Section ────────────────────────────────────────────────────────────── */
+.dcd-section-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: #888;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 6px;
+  border-bottom: 1px solid #3a3a3a;
+  padding-bottom: 4px;
+}
+
+/* ── Field row ──────────────────────────────────────────────────────────── */
+.dcd-field {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.dcd-field label {
+  font-size: 12px;
+  color: #aaa;
+  flex: 1;
+  white-space: nowrap;
+}
+
+.dcd-field input,
+.dcd-field select {
+  background: #1a1a1a;
+  border: 1px solid #555;
+  border-radius: 4px;
+  color: #fff;
+  font-size: 13px;
+  font-family: inherit;
+  padding: 4px 8px;
+  width: 140px;
+  flex-shrink: 0;
+}
+
+.dcd-field input:disabled {
+  color: #555;
+  background: #252525;
+  border-color: #3a3a3a;
+  cursor: not-allowed;
+}
+
+.dcd-field input:focus,
+.dcd-field select:focus {
+  outline: none;
+  border-color: #0066cc;
+}
+
+/* ── Calculated (read-only) value ───────────────────────────────────────── */
+.dcd-calculated {
+  font-size: 12px;
+  color: #5599ff;
+  text-align: right;
+  width: 140px;
+  flex-shrink: 0;
+}
+
+/* ── Port row ───────────────────────────────────────────────────────────── */
+.dcd-port-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+.dcd-port-label {
+  font-size: 12px;
+  color: #aaa;
+  flex: 1;
+  white-space: nowrap;
+}
+
+.dcd-port-dir {
+  font-size: 11px;
+  color: #777;
+  width: 28px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.dcd-port-size-select {
+  background: #1a1a1a;
+  border: 1px solid #555;
+  border-radius: 4px;
+  color: #fff;
+  font-size: 12px;
+  font-family: inherit;
+  padding: 3px 6px;
+  width: 100px;
+  flex-shrink: 0;
+}
+
+.dcd-port-size-select:focus {
+  outline: none;
+  border-color: #0066cc;
+}
+
+.dcd-port-optional {
+  font-size: 10px;
+  color: #555;
+  flex-shrink: 0;
+}
+
+/* ── Warning ────────────────────────────────────────────────────────────── */
+.dcd-warning {
+  background: #3a2000;
+  border: 1px solid #664400;
+  border-radius: 4px;
+  color: #ffaa44;
+  font-size: 12px;
+  padding: 6px 10px;
+}
+
+/* ── Footer ─────────────────────────────────────────────────────────────── */
+.dcd-footer {
+  border-top: 1px solid #3a3a3a;
+  padding: 10px 14px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.dcd-footer button {
+  background: #3d3d3d;
+  border: 1px solid #555;
+  border-radius: 4px;
+  color: #ccc;
+  font-size: 13px;
+  font-family: inherit;
+  padding: 5px 16px;
+  cursor: pointer;
+}
+
+.dcd-footer button:hover {
+  background: #4d4d4d;
+  color: #fff;
+}
+
+.dcd-footer button.primary {
+  background: #0066cc;
+  border-color: #0066cc;
+  color: #fff;
+}
+
+.dcd-footer button.primary:hover {
+  background: #0077ee;
+}
+
+.dcd-footer button.primary:disabled {
+  background: #334;
+  border-color: #446;
+  color: #668;
+  cursor: not-allowed;
+}
+
+/* ── Manifold port count row ────────────────────────────────────────────── */
+.dcd-port-count-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.dcd-port-count-row label {
+  font-size: 12px;
+  color: #aaa;
+  flex: 1;
+}
+
+.dcd-port-count-row select {
+  background: #1a1a1a;
+  border: 1px solid #555;
+  border-radius: 4px;
+  color: #fff;
+  font-size: 13px;
+  font-family: inherit;
+  padding: 4px 8px;
+  width: 80px;
+}

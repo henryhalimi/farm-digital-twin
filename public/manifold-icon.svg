@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <circle cx="32" cy="32" r="31" fill="white" stroke="#ccc" stroke-width="1"/>
+  <!-- Main horizontal header pipe -->
+  <line x1="10" y1="22" x2="54" y2="22" stroke="#333333" stroke-width="3.5" stroke-linecap="round"/>
+  <!-- Vertical branches down -->
+  <line x1="16" y1="22" x2="16" y2="48" stroke="#333333" stroke-width="2.5" stroke-linecap="round"/>
+  <line x1="27" y1="22" x2="27" y2="48" stroke="#333333" stroke-width="2.5" stroke-linecap="round"/>
+  <line x1="38" y1="22" x2="38" y2="48" stroke="#333333" stroke-width="2.5" stroke-linecap="round"/>
+  <line x1="49" y1="22" x2="49" y2="48" stroke="#333333" stroke-width="2.5" stroke-linecap="round"/>
+  <!-- Small outlet circles at branch ends -->
+  <circle cx="16" cy="48" r="2" fill="none" stroke="#333333" stroke-width="1.5"/>
+  <circle cx="27" cy="48" r="2" fill="none" stroke="#333333" stroke-width="1.5"/>
+  <circle cx="38" cy="48" r="2" fill="none" stroke="#333333" stroke-width="1.5"/>
+  <circle cx="49" cy="48" r="2" fill="none" stroke="#333333" stroke-width="1.5"/>
+</svg>

@@ -1,0 +1,179 @@
+.toolbar {
+  display: flex;
+  align-items: center;
+  background: #252525;
+  border-bottom: 1px solid #1a1a1a;
+  height: 40px;
+  padding: 0 8px;
+  gap: 4px;
+  flex-shrink: 0;
+  user-select: none;
+}
+
+.toolbar-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: none;
+  border: 1px solid transparent;
+  color: #aaa;
+  font-size: 12px;
+  font-family: inherit;
+  padding: 4px 10px;
+  border-radius: 5px;
+  cursor: pointer;
+  height: 28px;
+  transition: all 0.1s;
+}
+
+.toolbar-btn:hover {
+  background: #3a3a3a;
+  color: #eee;
+  border-color: #444;
+}
+
+.toolbar-btn.active {
+  background: #0066cc;
+  color: #fff;
+  border-color: #0055aa;
+}
+
+.toolbar-btn.danger:hover:not(:disabled) {
+  background: #8b2020;
+  color: #fff;
+  border-color: #a83030;
+}
+
+.toolbar-btn:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+/* ── Split draw button ─────────────────────────────────────────────────────── */
+.draw-split-btn {
+  position: relative;
+  display: flex;
+  align-items: center;
+  border: 1px solid transparent;
+  border-radius: 5px;
+  height: 28px;
+  transition: border-color 0.1s;
+}
+
+.draw-split-btn:hover {
+  border-color: #444;
+  background: #3a3a3a;
+}
+
+.draw-split-btn.active {
+  background: #0066cc;
+  border-color: #0055aa;
+}
+
+.draw-split-main {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: none;
+  border: none;
+  color: #aaa;
+  font-size: 12px;
+  font-family: inherit;
+  padding: 4px 6px 4px 8px;
+  cursor: pointer;
+  height: 100%;
+  border-radius: 5px 0 0 5px;
+}
+
+.draw-split-btn.active .draw-split-main {
+  color: #fff;
+}
+
+.draw-split-btn:not(.active) .draw-split-main:hover {
+  color: #eee;
+}
+
+.draw-split-arrow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  border-left: 1px solid rgba(255,255,255,0.15);
+  color: #aaa;
+  padding: 0 5px;
+  cursor: pointer;
+  height: 100%;
+  border-radius: 0 5px 5px 0;
+}
+
+.draw-split-btn.active .draw-split-arrow {
+  color: rgba(255,255,255,0.8);
+  border-left-color: rgba(255,255,255,0.25);
+}
+
+.draw-split-arrow:hover {
+  background: rgba(255,255,255,0.1);
+}
+
+/* ── Element picker popup ─────────────────────────────────────────────────── */
+.element-picker {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  background: #2d2d2d;
+  border: 1px solid #444;
+  border-radius: 6px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+  padding: 4px;
+  z-index: 1000;
+  min-width: 130px;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.picker-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: none;
+  border: none;
+  color: #ccc;
+  font-size: 12px;
+  font-family: inherit;
+  padding: 5px 8px;
+  cursor: pointer;
+  border-radius: 4px;
+  text-align: left;
+  width: 100%;
+}
+
+.picker-item:hover {
+  background: #0066cc;
+  color: #fff;
+}
+
+.picker-item.selected {
+  background: #004a99;
+  color: #fff;
+}
+
+/* ── Rest ─────────────────────────────────────────────────────────────────── */
+.toolbar-separator {
+  width: 1px;
+  height: 24px;
+  background: #3a3a3a;
+  margin: 0 4px;
+}
+
+.toolbar-spacer { flex: 1; }
+
+.toolbar-status {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: #666;
+  font-size: 12px;
+  padding-right: 8px;
+}

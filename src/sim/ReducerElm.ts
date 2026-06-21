@@ -1,0 +1,94 @@
+import { CircuitElm, type DrawContext, type EditInfo, type Simulator, dbl } from './CircuitElm'
+import { getImage, isReady } from './ImageLoader'
+
+export class ReducerElm extends CircuitElm {
+  resistance = 1.0  // PSI·min/gal
+
+  constructor(x: number, y: number, x2?: number, y2?: number, flags = 0) {
+    super(x, y, x2, y2, flags)
+  }
+
+  getXmlDumpType(): string { return 'rd' }
+  getFixedLength(): number { return 32 }
+
+  setPoints(): void {
+    super.setPoints()
+    this.calcLeads(32)
+  }
+
+  stamp(sim: Simulator): void {
+    sim.stampResistor(this.nodes[0], this.nodes[1], this.resistance)
+  }
+
+  calculateCurrent(): void {
+    this.current = (this.volts[0] - this.volts[1]) / this.resistance
+  }
+
+  draw(dc: DrawContext, onLoad?: () => void): void {
+    const { ctx, scale } = dc
+    const lw = 3 / scale
+
+    ctx.save()
+    ctx.lineWidth = lw
+    ctx.lineCap = 'round'
+    ctx.strokeStyle = this.voltageColor(0)
+    ctx.beginPath(); ctx.moveTo(this.point1.x, this.point1.y); ctx.lineTo(this.lead1.x, this.lead1.y); ctx.stroke()
+    ctx.strokeStyle = this.voltageColor(1)
+    ctx.beginPath(); ctx.moveTo(this.point2.x, this.point2.y); ctx.lineTo(this.lead2.x, this.lead2.y); ctx.stroke()
+    ctx.restore()
+
+    const img = getImage('/reducer-icon.svg', onLoad)
+    if (isReady(img)) {
+      const dx = this.lead2.x - this.lead1.x
+      const dy = this.lead2.y - this.lead1.y
+      const len = Math.sqrt(dx * dx + dy * dy)
+      if (len > 0) {
+        const cdx = dx / len, cdy = dy / len
+        ctx.save()
+        ctx.transform(cdx, cdy, -cdy, cdx, this.lead1.x, this.lead1.y)
+        ctx.drawImage(img, 0, -len / 2, len, len)
+        this.drawHighlightOverlay(ctx, 0, -len / 2, len, len)
+        ctx.restore()
+      }
+    }
+
+    this.curcount += this.current * dc.currentMult
+    this.drawDots(dc, this.point1, this.lead1, this.curcount)
+    this.drawDots(dc, this.point2, this.lead2, -this.curcount)
+    this.drawPosts(dc)
+  }
+
+  getInfo(arr: string[]): void {
+    arr[0] = 'reducer'
+    this.getBasicInfo(arr)
+    arr[3] = `R = ${this.resistance} PSI·min/gal`
+  }
+
+  // ── Edit ─────────────────────────────────────────────────────────────────────
+  getEditInfo(n: number): EditInfo | null {
+    if (n === 0) return { name: 'Resistance', value: this.resistance }
+    return null
+  }
+
+  setEditValue(n: number, ei: EditInfo): void {
+    if (n === 0) this.resistance = ei.value
+  }
+
+  dumpXml(attrs: Record<string, string>): void {
+    super.dumpXml(attrs)
+    attrs['r'] = String(this.resistance)
+  }
+
+  undumpXml(elem: Element): void {
+    super.undumpXml(elem)
+    this.resistance = dbl(elem, 'r', this.resistance)
+  }
+
+  static fromXml(elem: Element): ReducerElm {
+    const x = elem.getAttribute('x')!.split(' ').map(Number)
+    const elm = new ReducerElm(x[0], x[1], x[2], x[3])
+    elm.undumpXml(elem)
+    elm.setPoints()
+    return elm
+  }
+}

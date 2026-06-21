@@ -1,0 +1,95 @@
+.edit-dialog-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 3000;
+}
+
+.edit-dialog {
+  background: #2d2d2d;
+  border: 1px solid #444;
+  border-radius: 8px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6);
+  min-width: 300px;
+  padding: 16px;
+  color: #ccc;
+  font-size: 13px;
+}
+
+.edit-dialog h3 {
+  margin: 0 0 12px;
+  font-size: 14px;
+  color: #fff;
+}
+
+.edit-dialog-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 12px;
+}
+
+.edit-dialog-field label {
+  font-size: 12px;
+  color: #aaa;
+}
+
+.edit-dialog-field input,
+.edit-dialog-field select {
+  background: #1a1a1a;
+  border: 1px solid #555;
+  border-radius: 4px;
+  color: #fff;
+  font-size: 13px;
+  padding: 4px 8px;
+  font-family: inherit;
+}
+
+.edit-dialog-field input:disabled {
+  color: #666;
+  background: #252525;
+  border-color: #3a3a3a;
+  cursor: not-allowed;
+}
+
+.edit-dialog-field input:focus,
+.edit-dialog-field select:focus {
+  outline: none;
+  border-color: #0066cc;
+}
+
+.edit-dialog-buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.edit-dialog-buttons button {
+  background: #3d3d3d;
+  border: 1px solid #555;
+  border-radius: 4px;
+  color: #ccc;
+  font-size: 13px;
+  font-family: inherit;
+  padding: 5px 16px;
+  cursor: pointer;
+}
+
+.edit-dialog-buttons button:hover {
+  background: #4d4d4d;
+  color: #fff;
+}
+
+.edit-dialog-buttons button.primary {
+  background: #0066cc;
+  border-color: #0066cc;
+  color: #fff;
+}
+
+.edit-dialog-buttons button.primary:hover {
+  background: #0077ee;
+}
