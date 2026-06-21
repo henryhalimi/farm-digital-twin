@@ -1,0 +1,213 @@
+.block-config-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 3000;
+}
+
+.block-config-dialog {
+  background: #2d2d2d;
+  border: 1px solid #444;
+  border-radius: 8px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6);
+  min-width: 340px;
+  max-width: 440px;
+  width: 100%;
+  color: #ccc;
+  font-size: 13px;
+  font-family: inherit;
+  overflow: hidden;
+}
+
+/* ── Header ─────────────────────────────────────────────────────────────── */
+.bcd-header {
+  background: #1a2a1a;
+  border-bottom: 1px solid #3a5a3a;
+  padding: 10px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.bcd-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #88ff88;
+  margin: 0;
+}
+
+.bcd-valve-id {
+  font-family: monospace;
+  font-size: 10px;
+  color: #556655;
+}
+
+/* ── Tabs ───────────────────────────────────────────────────────────────── */
+.bcd-tabs {
+  display: flex;
+  background: #222;
+  border-bottom: 1px solid #3a3a3a;
+}
+
+.bcd-tab {
+  padding: 7px 16px;
+  font-size: 12px;
+  color: #777;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: color 0.15s;
+  background: none;
+  border-top: none;
+  border-left: none;
+  border-right: none;
+  font-family: inherit;
+}
+
+.bcd-tab:hover {
+  color: #aaa;
+}
+
+.bcd-tab.active {
+  color: #88ff88;
+  border-bottom-color: #88ff88;
+}
+
+/* ── Body ───────────────────────────────────────────────────────────────── */
+.bcd-body {
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-height: 55vh;
+  overflow-y: auto;
+}
+
+/* ── Section ────────────────────────────────────────────────────────────── */
+.bcd-section-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: #557755;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 6px;
+  border-bottom: 1px solid #2a3a2a;
+  padding-bottom: 4px;
+}
+
+/* ── Field row ──────────────────────────────────────────────────────────── */
+.bcd-field {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.bcd-field label {
+  font-size: 12px;
+  color: #aaa;
+  flex: 1;
+  white-space: nowrap;
+}
+
+.bcd-field input,
+.bcd-field select {
+  background: #1a1a1a;
+  border: 1px solid #555;
+  border-radius: 4px;
+  color: #fff;
+  font-size: 13px;
+  font-family: inherit;
+  padding: 4px 8px;
+  width: 150px;
+  flex-shrink: 0;
+}
+
+.bcd-field input:focus,
+.bcd-field select:focus {
+  outline: none;
+  border-color: #4a8a4a;
+}
+
+/* ── Calculated value ───────────────────────────────────────────────────── */
+.bcd-calculated {
+  font-size: 12px;
+  color: #88ff88;
+  text-align: right;
+  width: 150px;
+  flex-shrink: 0;
+}
+
+/* ── Canvas label preview ───────────────────────────────────────────────── */
+.bcd-label-preview {
+  background: #1a2a1a;
+  border: 1px solid #3a5a3a;
+  border-radius: 4px;
+  padding: 8px 12px;
+  text-align: center;
+}
+
+.bcd-label-preview-id {
+  font-size: 18px;
+  font-weight: 700;
+  color: #88ff88;
+  line-height: 1.2;
+}
+
+.bcd-label-preview-name {
+  font-size: 12px;
+  color: #aaccaa;
+  margin-top: 2px;
+}
+
+.bcd-label-preview-crop {
+  font-size: 10px;
+  color: #557755;
+  margin-top: 2px;
+}
+
+/* ── Placeholder tab content ────────────────────────────────────────────── */
+.bcd-placeholder {
+  text-align: center;
+  color: #556655;
+  font-size: 12px;
+  padding: 24px 0;
+}
+
+/* ── Footer ─────────────────────────────────────────────────────────────── */
+.bcd-footer {
+  border-top: 1px solid #2a3a2a;
+  padding: 10px 14px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.bcd-footer button {
+  background: #3d3d3d;
+  border: 1px solid #555;
+  border-radius: 4px;
+  color: #ccc;
+  font-size: 13px;
+  font-family: inherit;
+  padding: 5px 16px;
+  cursor: pointer;
+}
+
+.bcd-footer button:hover {
+  background: #4d4d4d;
+  color: #fff;
+}
+
+.bcd-footer button.primary {
+  background: #2a5a2a;
+  border-color: #4a8a4a;
+  color: #88ff88;
+}
+
+.bcd-footer button.primary:hover {
+  background: #3a6a3a;
+}
