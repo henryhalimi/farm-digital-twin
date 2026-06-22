@@ -14,7 +14,7 @@ import { validatePlacement, validateNetwork } from '../sim/ConnectionValidator'
 import { LumoValveElm } from '../sim/LumoValveElm'
 import './MapView.css'
 
-mapboxgl.accessToken = ''
+mapboxgl.accessToken = 'pk.eyJ1IjoiaGVucnloYWxpbWkiLCJhIjoiY21xb24zb2RnMjFpeDJ4cTZkeGZybTducSJ9.2Y0cG5Ioz0fBxf2a0eLUyQ'
 
 const SNAP_DIST = 20        // circuit units (meters)
 const HOVER_THRESHOLD = 12  // CSS pixels — max distance to highlight an element
