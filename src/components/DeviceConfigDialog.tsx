@@ -515,33 +515,17 @@ export function DeviceConfigDialog({ elm, onApply, onClose }: DeviceConfigDialog
           {waterPorts.length > 0 && (
             <div>
               <div className="dcd-section-label">Port Sizes</div>
-              {waterPorts.map((p, i) => (
-                <div key={i} className="dcd-port-row">
-                  <span className="dcd-port-label">{p.label}</span>
 
-                  {/* Direction — editable only for B ports on manifold */}
-                  {deviceTypeId === 'manifold' ? (
-                    <select
-                      className="dcd-port-size-select"
-                      style={{ width: 56 }}
-                      value={p.direction}
-                      onChange={e => handlePortDir(i, e.target.value)}
-                    >
-                      <option value="I">In</option>
-                      <option value="O">Out</option>
-                      <option value="B">Bi</option>
-                    </select>
-                  ) : (
-                    <span className="dcd-port-dir">
-                      {p.direction === 'I' ? 'In' : p.direction === 'O' ? 'Out' : 'Bi'}
-                    </span>
-                  )}
-
-                  {/* Size selector */}
+              {deviceTypeId === 'pipe' ? (
+                <div className="dcd-port-row">
+                  <span className="dcd-port-label">Pipe size</span>
                   <select
                     className="dcd-port-size-select"
-                    value={p.sizeCode}
-                    onChange={e => handlePortSize(i, e.target.value)}
+                    value={portEntries[0]?.sizeCode ?? 'x'}
+                    onChange={e => {
+                      handlePortSize(0, e.target.value)
+                      handlePortSize(1, e.target.value)
+                    }}
                   >
                     <option value="x">— select —</option>
                     {PIPE_SIZE_CODE_LIST.map(code => (
@@ -550,10 +534,43 @@ export function DeviceConfigDialog({ elm, onApply, onClose }: DeviceConfigDialog
                       </option>
                     ))}
                   </select>
-
-                  {p.optional && <span className="dcd-port-optional">optional</span>}
                 </div>
-              ))}
+              ) : (
+                waterPorts.map((p, i) => (
+                  <div key={i} className="dcd-port-row">
+                    <span className="dcd-port-label">{p.label}</span>
+                    {deviceTypeId === 'manifold' ? (
+                      <select
+                        className="dcd-port-size-select"
+                        style={{ width: 56 }}
+                        value={p.direction}
+                        onChange={e => handlePortDir(i, e.target.value)}
+                      >
+                        <option value="I">In</option>
+                        <option value="O">Out</option>
+                        <option value="B">Bi</option>
+                      </select>
+                    ) : (
+                      <span className="dcd-port-dir">
+                        {p.direction === 'I' ? 'In' : p.direction === 'O' ? 'Out' : 'Bi'}
+                      </span>
+                    )}
+                    <select
+                      className="dcd-port-size-select"
+                      value={p.sizeCode}
+                      onChange={e => handlePortSize(i, e.target.value)}
+                    >
+                      <option value="x">— select —</option>
+                      {PIPE_SIZE_CODE_LIST.map(code => (
+                        <option key={code} value={code}>
+                          {code} — {PIPE_SIZE_CODES[code]}
+                        </option>
+                      ))}
+                    </select>
+                    {p.optional && <span className="dcd-port-optional">optional</span>}
+                  </div>
+                ))
+              )}
             </div>
           )}
 
