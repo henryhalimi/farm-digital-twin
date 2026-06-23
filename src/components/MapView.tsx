@@ -48,12 +48,14 @@ function segDistSq(px: number, py: number, ax: number, ay: number, bx: number, b
   return (px - ax - t * dx) ** 2 + (py - ay - t * dy) ** 2
 }
 
-function ToolContextMenu({ x, y, activeTool, activeElementType, onSelect, onClose }: {
+function ToolContextMenu({ x, y, activeTool, activeElementType, onSelect, onClose, onPaste, canPaste }: {
   x: number; y: number
   activeTool: Tool
   activeElementType: ElementTypeDef
   onSelect: (tool: Tool, elementType?: ElementTypeDef) => void
   onClose: () => void
+  onPaste: () => void
+  canPaste: boolean
 }) {
   const ref = useRef<HTMLDivElement>(null)
 
@@ -86,6 +88,14 @@ function ToolContextMenu({ x, y, activeTool, activeElementType, onSelect, onClos
         <span className="tool-menu-check">{isActive('pan') ? '\u2713' : ''}</span>
         Pan
       </button>
+      {canPaste && (
+        <>
+          <div className="context-menu-separator" />
+          <button className="context-menu-item" onClick={() => { onPaste(); onClose() }}>
+            Paste here
+          </button>
+        </>
+      )}
       <div className="context-menu-separator" />
       {ELEMENT_TYPES.map(type => (
         <button
@@ -107,16 +117,20 @@ interface MapViewProps {
   elements: CircuitElm[]
   onElementsChange: (elms: CircuitElm[]) => void
   simRunning: boolean
-  fitKey?: number  // increment to trigger fit-bounds on loaded circuit
+  fitKey?: number
   onBeforeChange?: () => void
   mouseCircuitRef?: React.MutableRefObject<CPoint | null>
   simSpeed?: number
   anchorKey?: number
   onToolChange?: (tool: Tool) => void
   onElementTypeChange?: (type: ElementTypeDef) => void
+  onCut?: (elm?: CircuitElm) => void
+  onCopy?: (elm?: CircuitElm) => void
+  onPaste?: () => void
+  hasClipboard?: boolean
 }
 
-export function MapView({ activeTool, activeElementType, elements, onElementsChange, simRunning, fitKey, onBeforeChange, mouseCircuitRef, simSpeed = 1, anchorKey, onToolChange, onElementTypeChange }: MapViewProps) {
+export function MapView({ activeTool, activeElementType, elements, onElementsChange, simRunning, fitKey, onBeforeChange, mouseCircuitRef, simSpeed = 1, anchorKey, onToolChange, onElementTypeChange, onCut, onCopy, onPaste, hasClipboard = false }: MapViewProps) {
   const mapDivRef = useRef<HTMLDivElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const mapRef = useRef<mapboxgl.Map | null>(null)
@@ -127,7 +141,7 @@ export function MapView({ activeTool, activeElementType, elements, onElementsCha
   const [editElm, setEditElm] = useState<CircuitElm | null>(null)
   const [blockElm, setBlockElm] = useState<LumoValveElm | null>(null)
   const [validationWarnings, setValidationWarnings] = useState<{ rule: number; message: string }[]>([])
-  const clipboardRef = useRef<CircuitElm | null>(null)
+  
 
   const activeToolRef = useRef<Tool>(activeTool)
   const activeElementTypeRef = useRef<ElementTypeDef>(activeElementType)
@@ -607,8 +621,28 @@ export function MapView({ activeTool, activeElementType, elements, onElementsCha
             onBeforeChangeRef.current?.()
             elemDragUndoPushed = true
           }
+          // Collect all grid points that are moving (from selected elements)
+          const movingPoints = new Set<string>()
+          for (const elm of elementsRef.current) {
+            if (!elm.selected) continue
+            for (let i = 0; i < elm.getPostCount(); i++) {
+              const p = elm.getPost(i)
+              movingPoints.add(`${p.x},${p.y}`)
+            }
+          }
+          // Move selected elements
           for (const elm of elementsRef.current) {
             if (elm.selected) elm.move(dx, dy)
+          }
+          // Move endpoints of unselected elements that share a grid point
+          for (const elm of elementsRef.current) {
+            if (elm.selected) continue
+            for (let i = 0; i < elm.getPostCount(); i++) {
+              const p = elm.getPost(i)
+              if (movingPoints.has(`${p.x},${p.y}`)) {
+                elm.movePoint(i, dx, dy)
+              }
+            }
           }
           elemDragStartCircuit = now
           analyzeFlagRef.current = true
@@ -841,86 +875,20 @@ export function MapView({ activeTool, activeElementType, elements, onElementsCha
   }, [contextMenu, onElementsChange, onBeforeChange])
 
   const handleCopy = useCallback(() => {
-    if (contextMenu) clipboardRef.current = contextMenu.elm
+    if (contextMenu) onCopy?.(contextMenu.elm as any)
     setContextMenu(null)
-  }, [contextMenu])
+  }, [contextMenu, onCopy])
 
   const handleCut = useCallback(() => {
-    if (contextMenu) {
-      const hasSelection = elementsRef.current.filter(e => e.selected).length > 1
-      clipboardRef.current = hasSelection ? null : contextMenu.elm
-      onBeforeChange?.()
-      if (hasSelection) {
-        onElementsChange(elementsRef.current.filter(e => !e.selected))
-      } else {
-        onElementsChange(elementsRef.current.filter(e => e !== contextMenu.elm))
-      }
-    }
+    if (contextMenu) onCut?.(contextMenu.elm as any)
     setContextMenu(null)
-  }, [contextMenu, onElementsChange, onBeforeChange])
+  }, [contextMenu, onCut])
 
   const handlePaste = useCallback(() => {
-    const src = clipboardRef.current
-    if (!src) return
-    // Clone by serialising and deserialising
-    const tag = src.getXmlDumpType()
-    const typeDef = ELEMENT_TYPES.find(t => t.xmlTag === tag)
-    if (!typeDef) return
-    // Place offset from original
-    const offset = 20
-    const clone = typeDef.create(src.x + offset, src.y + offset)
-    // Copy analytical properties
-    for (let i = 0; ; i++) {
-      const ei = src.getEditInfo(i)
-      if (!ei) break
-      clone.setEditValue(i, ei)
-    }
-    // Copy block data if present
-    if ((src as any)._blockData) (clone as any)._blockData = { ...(src as any)._blockData }
-    if ((src as any)._portSizeCodes) (clone as any)._portSizeCodes = [...(src as any)._portSizeCodes]
-    onBeforeChange?.()
-    onElementsChange([...elementsRef.current, clone])
+    onPaste?.()
     setContextMenu(null)
-  }, [onElementsChange, onBeforeChange])
-
-  // ── Keyboard shortcuts ───────────────────────────────────────────────────────
-  useEffect(() => {
-    const handler = (e: KeyboardEvent) => {
-      const tag = (e.target as HTMLElement).tagName
-      if (tag === 'INPUT' || tag === 'SELECT' || tag === 'TEXTAREA') return
-      if (e.ctrlKey || e.metaKey) {
-        if (e.key === 'v' || e.key === 'V') { e.preventDefault(); handlePaste() }
-        if (e.key === 'c' || e.key === 'C') {
-          e.preventDefault()
-          const sel = elementsRef.current.find(el => el.selected)
-          if (sel) clipboardRef.current = sel
-        }
-        if (e.key === 'x' || e.key === 'X') {
-          e.preventDefault()
-          const sel = elementsRef.current.find(el => el.selected)
-          if (sel) {
-            clipboardRef.current = sel
-            onBeforeChange?.()
-            onElementsChange(elementsRef.current.filter(e => e !== sel))
-          }
-        }
-      }
-      if (e.key === 'Delete' || e.key === 'Backspace') {
-        const selected = elementsRef.current.filter(el => el.selected)
-        if (selected.length > 0) {
-          onBeforeChange?.()
-          onElementsChange(elementsRef.current.filter(el => !el.selected))
-        }
-      }
-      if (e.key === 'Escape') {
-        setContextMenu(null)
-        setEditElm(null)
-        setBlockElm(null)
-      }
-    }
-    window.addEventListener('keydown', handler)
-    return () => window.removeEventListener('keydown', handler)
-  }, [handlePaste, onBeforeChange, onElementsChange])
+    setToolMenu(null)
+  }, [onPaste])
 
   const handleEditApply = useCallback(() => {
     analyzeFlagRef.current = true
@@ -941,7 +909,7 @@ export function MapView({ activeTool, activeElementType, elements, onElementsCha
           onPaste={handlePaste}
           onDelete={handleDelete}
           onClose={() => setContextMenu(null)}
-          canPaste={clipboardRef.current !== null}
+          canPaste={hasClipboard ?? false}
         />
       )}
       {toolMenu && (
@@ -950,6 +918,8 @@ export function MapView({ activeTool, activeElementType, elements, onElementsCha
           y={toolMenu.y}
           activeTool={activeTool}
           activeElementType={activeElementType}
+          onPaste={handlePaste}
+          canPaste={hasClipboard ?? false}
           onSelect={(tool, elementType) => {
             if (tool === 'draw' && elementType) {
               onElementTypeChange?.(elementType)
