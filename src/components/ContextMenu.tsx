@@ -7,11 +7,13 @@ interface ContextMenuProps {
   onEdit: () => void
   onCut: () => void
   onCopy: () => void
+  onPaste: () => void
   onDelete: () => void
   onClose: () => void
+  canPaste: boolean
 }
 
-export function ContextMenu({ x, y, onEdit, onCut, onCopy, onDelete, onClose }: ContextMenuProps) {
+export function ContextMenu({ x, y, onEdit, onCut, onCopy, onPaste, onDelete, onClose, canPaste }: ContextMenuProps) {
   const ref = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -28,6 +30,7 @@ export function ContextMenu({ x, y, onEdit, onCut, onCopy, onDelete, onClose }: 
       <div className="context-menu-separator" />
       <button className="context-menu-item" onClick={onCut}>Cut</button>
       <button className="context-menu-item" onClick={onCopy}>Copy</button>
+      <button className="context-menu-item" onClick={onPaste} disabled={!canPaste}>Paste</button>
       <button className="context-menu-item" onClick={onDelete}>Delete</button>
     </div>
   )

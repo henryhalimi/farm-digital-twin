@@ -859,6 +859,69 @@ export function MapView({ activeTool, activeElementType, elements, onElementsCha
     setContextMenu(null)
   }, [contextMenu, onElementsChange, onBeforeChange])
 
+  const handlePaste = useCallback(() => {
+    const src = clipboardRef.current
+    if (!src) return
+    // Clone by serialising and deserialising
+    const tag = src.getXmlDumpType()
+    const typeDef = ELEMENT_TYPES.find(t => t.xmlTag === tag)
+    if (!typeDef) return
+    // Place offset from original
+    const offset = 20
+    const clone = typeDef.create(src.x + offset, src.y + offset)
+    // Copy analytical properties
+    for (let i = 0; ; i++) {
+      const ei = src.getEditInfo(i)
+      if (!ei) break
+      clone.setEditValue(i, ei)
+    }
+    // Copy block data if present
+    if ((src as any)._blockData) (clone as any)._blockData = { ...(src as any)._blockData }
+    if ((src as any)._portSizeCodes) (clone as any)._portSizeCodes = [...(src as any)._portSizeCodes]
+    onBeforeChange?.()
+    onElementsChange([...elementsRef.current, clone])
+    setContextMenu(null)
+  }, [onElementsChange, onBeforeChange])
+
+  // ── Keyboard shortcuts ───────────────────────────────────────────────────────
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      const tag = (e.target as HTMLElement).tagName
+      if (tag === 'INPUT' || tag === 'SELECT' || tag === 'TEXTAREA') return
+      if (e.ctrlKey || e.metaKey) {
+        if (e.key === 'v' || e.key === 'V') { e.preventDefault(); handlePaste() }
+        if (e.key === 'c' || e.key === 'C') {
+          e.preventDefault()
+          const sel = elementsRef.current.find(el => el.selected)
+          if (sel) clipboardRef.current = sel
+        }
+        if (e.key === 'x' || e.key === 'X') {
+          e.preventDefault()
+          const sel = elementsRef.current.find(el => el.selected)
+          if (sel) {
+            clipboardRef.current = sel
+            onBeforeChange?.()
+            onElementsChange(elementsRef.current.filter(e => e !== sel))
+          }
+        }
+      }
+      if (e.key === 'Delete' || e.key === 'Backspace') {
+        const selected = elementsRef.current.filter(el => el.selected)
+        if (selected.length > 0) {
+          onBeforeChange?.()
+          onElementsChange(elementsRef.current.filter(el => !el.selected))
+        }
+      }
+      if (e.key === 'Escape') {
+        setContextMenu(null)
+        setEditElm(null)
+        setBlockElm(null)
+      }
+    }
+    window.addEventListener('keydown', handler)
+    return () => window.removeEventListener('keydown', handler)
+  }, [handlePaste, onBeforeChange, onElementsChange])
+
   const handleEditApply = useCallback(() => {
     analyzeFlagRef.current = true
     redraw()
@@ -875,8 +938,10 @@ export function MapView({ activeTool, activeElementType, elements, onElementsCha
           onEdit={handleEdit}
           onCut={handleCut}
           onCopy={handleCopy}
+          onPaste={handlePaste}
           onDelete={handleDelete}
           onClose={() => setContextMenu(null)}
+          canPaste={clipboardRef.current !== null}
         />
       )}
       {toolMenu && (
