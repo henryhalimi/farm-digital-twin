@@ -22,6 +22,7 @@ function App() {
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const clipboardXmlRef = useRef<string>('')
+  const [hasClipboard, setHasClipboard] = useState(false)
   const mouseCircuitRef = useRef<CPoint | null>(null)
   const { pushUndo, undo, redo, canUndo, canRedo } = useUndoRedo()
 
@@ -35,7 +36,7 @@ function App() {
   const handleSelectAll = useCallback(() => {
     setElements(prev => {
       for (const elm of prev) elm.selected = true
-      return [...prev]  // trigger re-render
+      return [...prev]
     })
   }, [])
 
@@ -46,12 +47,12 @@ function App() {
 
   const handleCopySelected = useCallback(() => {
     const selected = elements.filter(elm => elm.selected)
-    if (selected.length > 0) clipboardXmlRef.current = saveCircuit(selected)
+    if (selected.length > 0) { clipboardXmlRef.current = saveCircuit(selected); setHasClipboard(true) }
   }, [elements])
 
   const handleCutSelected = useCallback(() => {
     const selected = elements.filter(elm => elm.selected)
-    if (selected.length > 0) clipboardXmlRef.current = saveCircuit(selected)
+    if (selected.length > 0) { clipboardXmlRef.current = saveCircuit(selected); setHasClipboard(true) }
     pushUndo(elements)
     setElements(prev => prev.filter(elm => !elm.selected))
   }, [elements, pushUndo])
@@ -288,6 +289,10 @@ function App() {
           anchorKey={anchorKey}
           onToolChange={setActiveTool}
           onElementTypeChange={(t) => { setActiveElementType(t); setActiveTool('draw') }}
+          onCut={handleCutSelected}
+          onCopy={handleCopySelected}
+          onPaste={() => handlePaste()}
+          hasClipboard={hasClipboard}
         />
       </div>
       {optionsOpen && (
