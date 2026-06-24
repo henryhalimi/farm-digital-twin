@@ -231,7 +231,8 @@ export function DeviceConfigDialog({ elm, onApply, onClose }: DeviceConfigDialog
       ;(elm as any).hazenC = PIPE_MATERIAL_C[pipeMaterial] ?? 150
     }
     if (deviceTypeId === 'tank') {
-      ;(elm as any)._elevation = tankElevation
+      elm.setEditValue(0, { name: 'Elevation above ground (ft)', value: tankElevation })
+      elm.setEditValue(1, { name: 'Capacity (gal)', value: fields[1]?.value ?? 1000 })
     }
     if (deviceTypeId === 'drip') {
       ;(elm as any)._dripEmitters = dripEmitters
@@ -320,8 +321,18 @@ export function DeviceConfigDialog({ elm, onApply, onClose }: DeviceConfigDialog
                 />
               </div>
               <div className="dcd-field">
-                <label>Static head</label>
+                <label>Outlet pressure</label>
                 <span className="dcd-calculated">{tankStaticHead} PSI</span>
+              </div>
+              <div className="dcd-field">
+                <label>Capacity (gal)</label>
+                <input
+                  type="number"
+                  value={fields[1]?.value ?? 1000}
+                  min={0}
+                  step={100}
+                  onChange={e => handleFieldChange(1, e.target.value)}
+                />
               </div>
             </div>
           )}
@@ -460,7 +471,7 @@ export function DeviceConfigDialog({ elm, onApply, onClose }: DeviceConfigDialog
           )}
 
           {/* ── Analytical fields (from getEditInfo) ────────────────────── */}
-          {fields.length > 0 && deviceTypeId !== 'custom-endpoint' && (
+          {fields.length > 0 && deviceTypeId !== 'custom-endpoint' && deviceTypeId !== 'tank' && deviceTypeId !== 'pipe' && (
             <div>
               <div className="dcd-section-label">Properties</div>
               {fields.map((ei, i) => (
