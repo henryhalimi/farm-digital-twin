@@ -85,7 +85,9 @@ export function DeviceConfigDialog({ elm, onApply, onClose }: DeviceConfigDialog
   const [pipeMaterial, setPipeMaterial] = useState('Rigid PVC')
 
   // ── Tank elevation ────────────────────────────────────────────────────────
-  const [tankElevation, setTankElevation] = useState(0)
+  const [tankElevation, setTankElevation] = useState(() =>
+    (elm as any).elevationFt ?? 0
+  )
 
   // ── Drip emitter fields ───────────────────────────────────────────────────
   const [dripEmitters, setDripEmitters] = useState(100)
@@ -135,8 +137,8 @@ export function DeviceConfigDialog({ elm, onApply, onClose }: DeviceConfigDialog
         .map((p, i) => ({
           portIndex: i,
           label: p.label,
-          direction: p.direction,
-          sizeCode: p.sizeCode === 'x' ? 'x' : p.sizeCode,
+          direction: (elm as any)._portDirections?.[i] ?? p.direction,
+          sizeCode: (elm as any)._portSizeCodes?.[i] ?? (p.sizeCode === 'x' ? 'x' : p.sizeCode),
           optional: p.optional,
           domain: p.domain,
         }))
