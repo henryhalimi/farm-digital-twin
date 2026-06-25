@@ -180,7 +180,7 @@ export class PipeElm extends CircuitElm {
     const lx = mx + px * offset
     const ly = my + py * offset
 
-    const fontSize = Math.max(7 / scale, 2.5)
+    const fontSize = Math.max(11 / scale, 3)
     ctx.save()
     ctx.font = `bold ${fontSize}px sans-serif`
     ctx.textAlign = 'center'

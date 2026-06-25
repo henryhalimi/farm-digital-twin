@@ -380,7 +380,7 @@ export abstract class CircuitElm {
       L:'3"',M:'4"',N:'5"',O:'6"',P:'8"',Q:'10"'
     }
 
-    const fontSize = Math.max(6 / scale, 2)
+    const fontSize = Math.max(11 / scale, 3)
     ctx.save()
     ctx.font = `bold ${fontSize}px sans-serif`
     ctx.textAlign = 'center'

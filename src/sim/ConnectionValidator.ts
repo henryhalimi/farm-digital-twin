@@ -14,7 +14,6 @@ import {
   DEVICE_TYPE_MAP,
   PIPE_SIZE_CODES,
   resolvePortDirections,
-  resolvePortSizes,
 } from './DeviceFingerprint'
 
 // ── Map XML tag → device type id ─────────────────────────────────────────────
@@ -149,29 +148,28 @@ export function validatePlacement(
       const sizeA = (newElm as any)._portSizeCodes?.[node.newPostIndex] ?? npd.sizeCode
       const sizeB = (node.existingElm as any)._portSizeCodes?.[node.existingPostIndex] ?? epd.sizeCode
 
-      if (sizeA !== 'x' && sizeB !== 'x') {
-        const resolved = resolvePortSizes(sizeA, sizeB)
-        if (!resolved) {
-          const labelA = PIPE_SIZE_CODES[sizeA] ?? sizeA
-          const labelB = PIPE_SIZE_CODES[sizeB] ?? sizeB
-          warnings.push({
-            rule: 3,
-            message: `Size mismatch: ${newTypeDef.label} port is ${labelA} but ${existingTypeDef.label} port is ${labelB}. Insert a 2-port Manifold to adapt sizes.`,
-          })
+      if (sizeA !== 'x' && sizeB !== 'x' && sizeA !== sizeB) {
+        // Both assigned but different — mismatch
+        const labelA = PIPE_SIZE_CODES[sizeA] ?? sizeA
+        const labelB = PIPE_SIZE_CODES[sizeB] ?? sizeB
+        warnings.push({
+          rule: 3,
+          message: `Size mismatch: ${newTypeDef.label} port is ${labelA} but ${existingTypeDef.label} port is ${labelB}. Insert a 2-port Manifold to adapt sizes.`,
+        })
+      } else if (sizeA === 'x' || sizeB === 'x') {
+        // At least one unresolved — prompt user to assign
+        warnings.push({
+          rule: 3,
+          message: `Assign pipe size for connection between ${newTypeDef.label} and ${existingTypeDef.label}.`,
+        })
+        // Inherit if one side is known
+        if (sizeA !== 'x' && sizeB === 'x') {
+          if (!(node.existingElm as any)._portSizeCodes) (node.existingElm as any)._portSizeCodes = []
+          ;(node.existingElm as any)._portSizeCodes[node.existingPostIndex] = sizeA
+        } else if (sizeB !== 'x' && sizeA === 'x') {
+          if (!(newElm as any)._portSizeCodes) (newElm as any)._portSizeCodes = []
+          ;(newElm as any)._portSizeCodes[node.newPostIndex] = sizeB
         }
-      }
-      // If either is 'x' (unresolved), auto-inherit — no warning needed
-      // Size propagation stored on element for later use
-      if (sizeA !== 'x' && sizeB === 'x') {
-        if (!(node.existingElm as any)._portSizeCodes) {
-          (node.existingElm as any)._portSizeCodes = []
-        }
-        ;(node.existingElm as any)._portSizeCodes[node.existingPostIndex] = sizeA
-      } else if (sizeB !== 'x' && sizeA === 'x') {
-        if (!(newElm as any)._portSizeCodes) {
-          (newElm as any)._portSizeCodes = []
-        }
-        ;(newElm as any)._portSizeCodes[node.newPostIndex] = sizeB
       }
     }
 
