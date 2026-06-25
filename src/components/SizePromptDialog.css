@@ -1,0 +1,100 @@
+.size-prompt-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 5000;
+}
+
+.size-prompt-dialog {
+  background: #2d2d2d;
+  border: 1px solid #555;
+  border-radius: 8px;
+  box-shadow: 0 12px 40px rgba(0,0,0,0.6);
+  min-width: 320px;
+  max-width: 420px;
+  width: 100%;
+  color: #ccc;
+  font-size: 13px;
+  font-family: inherit;
+  overflow: hidden;
+}
+
+.spd-header {
+  background: #3a2800;
+  border-bottom: 1px solid #664400;
+  padding: 10px 14px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #ffaa44;
+}
+
+.spd-body {
+  padding: 14px;
+}
+
+.spd-message {
+  font-size: 12px;
+  color: #aaa;
+  line-height: 1.5;
+  margin: 0 0 14px 0;
+}
+
+.spd-message strong {
+  color: #fff;
+}
+
+.spd-field {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.spd-field label {
+  font-size: 12px;
+  color: #aaa;
+  flex: 1;
+}
+
+.spd-field select {
+  background: #1a1a1a;
+  border: 1px solid #555;
+  border-radius: 4px;
+  color: #fff;
+  font-size: 13px;
+  font-family: inherit;
+  padding: 4px 8px;
+  width: 180px;
+}
+
+.spd-footer {
+  border-top: 1px solid #3a3a3a;
+  padding: 10px 14px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.spd-footer button {
+  background: #3d3d3d;
+  border: 1px solid #555;
+  border-radius: 4px;
+  color: #ccc;
+  font-size: 13px;
+  font-family: inherit;
+  padding: 5px 14px;
+  cursor: pointer;
+}
+
+.spd-footer button:hover { background: #4d4d4d; color: #fff; }
+
+.spd-footer button.primary {
+  background: #0066cc;
+  border-color: #0066cc;
+  color: #fff;
+}
+
+.spd-footer button.primary:hover { background: #0077ee; }
+.spd-footer button.primary:disabled { background: #334; border-color: #446; color: #668; cursor: not-allowed; }

@@ -96,6 +96,7 @@ export class SprinklerElm extends CircuitElm {
     this.curcount += this.current * dc.currentMult
     this.drawDots(dc, this.point1, this.point2, this.curcount)
     this.drawPosts(dc)
+    this.drawPortSizeLabels(dc)
   }
 
   getInfo(arr: string[]): void {

@@ -367,6 +367,46 @@ export abstract class CircuitElm {
     }
   }
 
+  // Draw size labels next to each water port
+  drawPortSizeLabels(dc: DrawContext): void {
+    const ctx = dc.ctx
+    const scale = dc.scale
+    const sizeCodes: string[] = (this as any)._portSizeCodes ?? []
+    if (sizeCodes.length === 0) return
+
+    const SIZES: Record<string, string> = {
+      A:'1/8"',B:'1/4"',C:'3/8"',D:'1/2"',E:'5/8"',F:'3/4"',
+      G:'1"',H:'1-1/4"',I:'1-1/2"',J:'2"',K:'2-1/2"',
+      L:'3"',M:'4"',N:'5"',O:'6"',P:'8"',Q:'10"'
+    }
+
+    const fontSize = Math.max(6 / scale, 2)
+    ctx.save()
+    ctx.font = `bold ${fontSize}px sans-serif`
+    ctx.textAlign = 'center'
+    ctx.textBaseline = 'middle'
+
+    for (let i = 0; i < this.getPostCount() && i < sizeCodes.length; i++) {
+      const p = this.getPost(i)
+      const code = sizeCodes[i] ?? 'x'
+      const label = code === 'x' ? '?' : `${code} ${SIZES[code] ?? ''}`
+      const color = code === 'x' ? '#ffaa00' : '#00ccff'
+
+      // Offset label away from center of element
+      const cx = (this.point1.x + this.point2.x) / 2
+      const cy = (this.point1.y + this.point2.y) / 2
+      const dx = p.x - cx, dy = p.y - cy
+      const dist = Math.sqrt(dx * dx + dy * dy) || 1
+      const offset = 8 / scale
+      const lx = p.x + (dx / dist) * offset
+      const ly = p.y + (dy / dist) * offset
+
+      ctx.fillStyle = color
+      ctx.fillText(label, lx, ly)
+    }
+    ctx.restore()
+  }
+
   // ── Info text ──────────────────────────────────────────────────────────────
   static getUnitText(v: number, u: string): string {
     return `${+v.toFixed(3)} ${u}`
