@@ -148,6 +148,9 @@ export function validatePlacement(
       const sizeA = (newElm as any)._portSizeCodes?.[node.newPostIndex] ?? npd.sizeCode
       const sizeB = (node.existingElm as any)._portSizeCodes?.[node.existingPostIndex] ?? epd.sizeCode
 
+      console.log(`Rule3 check: ${newTypeDef.label}[${node.newPostIndex}]=${sizeA} vs ${existingTypeDef.label}[${node.existingPostIndex}]=${sizeB}`)
+      console.log(`  _portSizeCodes A:`, (newElm as any)._portSizeCodes, `B:`, (node.existingElm as any)._portSizeCodes)
+
       if (sizeA !== 'x' && sizeB !== 'x' && sizeA !== sizeB) {
         // Both assigned but different — mismatch
         const labelA = PIPE_SIZE_CODES[sizeA] ?? sizeA
