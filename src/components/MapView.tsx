@@ -747,10 +747,17 @@ export function MapView({ activeTool, activeElementType, elements, onElementsCha
               const sizeA = (dragElmRef.current as any)._portSizeCodes?.[node.newPostIndex] ?? 'x'
               const sizeB = (node.existingElm as any)._portSizeCodes?.[node.existingPostIndex] ?? 'x'
               console.log('Setting size prompt:', typeIdA, sizeA, typeIdB, sizeB)
+              // Hold commit — don't call onElementsChange yet
+              // Store pending element to commit after size resolved
+              const pendingElm = dragElmRef.current
               setSizePrompt({
-                elmA: dragElmRef.current, portA: node.newPostIndex, sizeA, labelA: typeIdA,
+                elmA: pendingElm, portA: node.newPostIndex, sizeA, labelA: typeIdA,
                 elmB: node.existingElm, portB: node.existingPostIndex, sizeB, labelB: typeIdB,
               })
+              // Don't commit yet — committed in onResolve/onCancel
+              dragElmRef.current = null
+              redraw()
+              return
             }
           }
 
@@ -972,17 +979,16 @@ export function MapView({ activeTool, activeElementType, elements, onElementsCha
           labelB={sizePrompt.labelB}
           sizeB={sizePrompt.sizeB}
           onResolve={(code) => {
-            // Apply size to both ports
             if (!(sizePrompt.elmA as any)._portSizeCodes) (sizePrompt.elmA as any)._portSizeCodes = []
             if (!(sizePrompt.elmB as any)._portSizeCodes) (sizePrompt.elmB as any)._portSizeCodes = []
             ;(sizePrompt.elmA as any)._portSizeCodes[sizePrompt.portA] = code
             ;(sizePrompt.elmB as any)._portSizeCodes[sizePrompt.portB] = code
             setSizePrompt(null)
-            onElementsChange([...elementsRef.current])
+            // Now commit the element
+            onElementsChange([...elementsRef.current, sizePrompt.elmA])
           }}
           onCancel={() => {
-            // Remove the last placed element
-            onElementsChange(elementsRef.current.filter(e => e !== sizePrompt.elmA))
+            // Element was not committed — just close dialog
             setSizePrompt(null)
           }}
         />
