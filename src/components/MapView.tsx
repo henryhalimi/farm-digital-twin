@@ -739,12 +739,14 @@ export function MapView({ activeTool, activeElementType, elements, onElementsCha
 
           if (sizeWarning) {
             const nodes = findSharedNodes(dragElmRef.current, elementsRef.current)
+            console.log('Size warning fired, shared nodes:', nodes.length, 'warning:', sizeWarning.message)
             if (nodes.length > 0) {
               const node = nodes[0]
               const typeIdA = dragElmRef.current.getXmlDumpType()
               const typeIdB = node.existingElm.getXmlDumpType()
               const sizeA = (dragElmRef.current as any)._portSizeCodes?.[node.newPostIndex] ?? 'x'
               const sizeB = (node.existingElm as any)._portSizeCodes?.[node.existingPostIndex] ?? 'x'
+              console.log('Setting size prompt:', typeIdA, sizeA, typeIdB, sizeB)
               setSizePrompt({
                 elmA: dragElmRef.current, portA: node.newPostIndex, sizeA, labelA: typeIdA,
                 elmB: node.existingElm, portB: node.existingPostIndex, sizeB, labelB: typeIdB,
