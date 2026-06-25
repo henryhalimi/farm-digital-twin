@@ -20,6 +20,7 @@ export class PumpElm extends CircuitElm {
   getVoltageSourceCount(): number { return this.position === 0 ? 1 : 0 }
   nonLinear(): boolean { return true }
   isClickable(): boolean { return true }
+  hasGroundConnection(_n: number): boolean { return true }
 
   toggle(): void { this.position = this.position === 0 ? 1 : 0 }
 

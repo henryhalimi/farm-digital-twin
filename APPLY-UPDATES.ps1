@@ -6,6 +6,8 @@ param(
 Write-Host "Farm Digital Twin - Applying Updates" -ForegroundColor Green
 Write-Host "=====================================" -ForegroundColor Green
 
+Set-Location $ProjectPath
+
 $destMap = @{
     "DeviceConfigDialog.tsx"  = "src\components\DeviceConfigDialog.tsx"
     "MapView.tsx"             = "src\components\MapView.tsx"
