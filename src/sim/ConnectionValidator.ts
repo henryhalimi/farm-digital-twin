@@ -162,14 +162,6 @@ export function validatePlacement(
           rule: 3,
           message: `Assign pipe size for connection between ${newTypeDef.label} and ${existingTypeDef.label}.`,
         })
-        // Inherit if one side is known
-        if (sizeA !== 'x' && sizeB === 'x') {
-          if (!(node.existingElm as any)._portSizeCodes) (node.existingElm as any)._portSizeCodes = []
-          ;(node.existingElm as any)._portSizeCodes[node.existingPostIndex] = sizeA
-        } else if (sizeB !== 'x' && sizeA === 'x') {
-          if (!(newElm as any)._portSizeCodes) (newElm as any)._portSizeCodes = []
-          ;(newElm as any)._portSizeCodes[node.newPostIndex] = sizeB
-        }
       }
     }
 

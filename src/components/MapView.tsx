@@ -1003,6 +1003,7 @@ export function MapView({ activeTool, activeElementType, elements, onElementsCha
       {editElm && (
         <DeviceConfigDialog
           elm={editElm}
+          elements={elementsRef.current}
           onClose={() => setEditElm(null)}
           onApply={() => handleEditApply()}
         />

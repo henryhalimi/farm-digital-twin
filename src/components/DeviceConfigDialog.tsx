@@ -42,6 +42,8 @@ interface PortSizeEntry {
 // ── Props ─────────────────────────────────────────────────────────────────────
 interface DeviceConfigDialogProps {
   elm: CircuitElm
+  /** All elements on canvas — used for post-apply size conflict check */
+  elements?: CircuitElm[]
   /** Called with updated element after Apply */
   onApply: (elm: CircuitElm) => void
   onClose: () => void
@@ -67,7 +69,7 @@ function hwFrictionLoss(diamInches: number, lenFt: number, material: string): nu
 }
 
 // ── Component ─────────────────────────────────────────────────────────────────
-export function DeviceConfigDialog({ elm, onApply, onClose }: DeviceConfigDialogProps) {
+export function DeviceConfigDialog({ elm, elements = [], onApply, onClose }: DeviceConfigDialogProps) {
 
   const deviceTypeId = resolveDeviceTypeId(elm)
   const typeDef = DEVICE_TYPE_MAP.get(deviceTypeId)
@@ -225,6 +227,36 @@ export function DeviceConfigDialog({ elm, onApply, onClose }: DeviceConfigDialog
     // (elements will persist these via dumpXml extensions)
     ;(elm as any)._portSizeCodes = portEntries.map(p => p.sizeCode)
     ;(elm as any)._portDirections = portEntries.map(p => p.direction)
+
+    // ── Check for size conflicts with connected elements ──────────────────
+    const newSizes: string[] = portEntries.map(p => p.sizeCode)
+    const SIZES: Record<string, string> = {
+      A:'1/8"',B:'1/4"',C:'3/8"',D:'1/2"',E:'5/8"',F:'3/4"',
+      G:'1"',H:'1-1/4"',I:'1-1/2"',J:'2"',K:'2-1/2"',
+      L:'3"',M:'4"',N:'5"',O:'6"',P:'8"',Q:'10"'
+    }
+    const conflicts: string[] = []
+    for (let pi = 0; pi < elm.getPostCount(); pi++) {
+      const mySize = newSizes[pi] ?? 'x'
+      if (mySize === 'x') continue
+      const myPost = elm.getPost(pi)
+      for (const other of elements) {
+        if (other === elm) continue
+        for (let oi = 0; oi < other.getPostCount(); oi++) {
+          const op = other.getPost(oi)
+          if (op.x === myPost.x && op.y === myPost.y) {
+            const otherSize = (other as any)._portSizeCodes?.[oi] ?? 'x'
+            if (otherSize !== 'x' && otherSize !== mySize) {
+              conflicts.push(`Port ${pi + 1} (${SIZES[mySize]}) conflicts with connected ${other.getXmlDumpType()} (${SIZES[otherSize]})`)
+            }
+          }
+        }
+      }
+    }
+    if (conflicts.length > 0) {
+      setWarning(`Size conflict: ${conflicts.join('; ')}`)
+      return
+    }
 
     // Device-specific extras
     if (deviceTypeId === 'pipe') {
