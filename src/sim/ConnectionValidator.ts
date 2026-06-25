@@ -57,17 +57,26 @@ export function findSharedNodes(
   existingElements: CircuitElm[],
 ): SharedNode[] {
   const shared: SharedNode[] = []
+  console.log('findSharedNodes: new elm posts:')
+  for (let ni = 0; ni < newElm.getPostCount(); ni++) {
+    const np = newElm.getPost(ni)
+    console.log(`  new[${ni}]: (${np.x.toFixed(1)}, ${np.y.toFixed(1)})`)
+  }
   for (let ni = 0; ni < newElm.getPostCount(); ni++) {
     const np = newElm.getPost(ni)
     for (const existing of existingElements) {
       if (existing === newElm) continue
       for (let ei = 0; ei < existing.getPostCount(); ei++) {
         const ep = existing.getPost(ei)
-        if (np.x === ep.x && np.y === ep.y) {
+        const dist = Math.sqrt((np.x-ep.x)**2 + (np.y-ep.y)**2)
+        if (dist < 2) {
+          console.log(`  MATCH: new[${ni}] (${np.x.toFixed(1)},${np.y.toFixed(1)}) == existing[${ei}] (${ep.x.toFixed(1)},${ep.y.toFixed(1)}) dist=${dist.toFixed(2)}`)
           shared.push({
             newElm, newPostIndex: ni,
             existingElm: existing, existingPostIndex: ei,
           })
+        } else if (dist < 5) {
+          console.log(`  NEAR MISS: new[${ni}] (${np.x.toFixed(1)},${np.y.toFixed(1)}) vs existing[${ei}] (${ep.x.toFixed(1)},${ep.y.toFixed(1)}) dist=${dist.toFixed(2)}`)
         }
       }
     }
