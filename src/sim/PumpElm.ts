@@ -107,6 +107,7 @@ export class PumpElm extends CircuitElm {
     this.drawDots(dc, this.point1, this.lead1, this.curcount)
     this.drawDots(dc, this.point2, this.lead2, -this.curcount)
     this.drawPosts(dc)
+    this.drawPortSizeLabels(dc)
   }
 
   pumpTypeString(): string { return PUMP_TYPES[this.pumpType] ?? PUMP_TYPES[0] }

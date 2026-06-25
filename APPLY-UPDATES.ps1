@@ -28,6 +28,17 @@ $destMap = @{
     "BlockData.ts"            = "src\sim\BlockData.ts"
     "ContextMenu.tsx"         = "src\components\ContextMenu.tsx"
     "ValidationToast.tsx"     = "src\components\ValidationToast.tsx"
+    "CircuitElm.ts"          = "src\sim\CircuitElm.ts"
+    "PipeElm.ts"             = "src\sim\PipeElm.ts"
+    "ValveElm.ts"            = "src\sim\ValveElm.ts"
+    "FilterElm.ts"           = "src\sim\FilterElm.ts"
+    "PRVElm.ts"              = "src\sim\PRVElm.ts"
+    "ManifoldElm.ts"         = "src\sim\ManifoldElm.ts"
+    "SprinklerElm.ts"        = "src\sim\SprinklerElm.ts"
+    "BoosterPumpElm.ts"      = "src\sim\BoosterPumpElm.ts"
+    "LumoValveElm.ts"        = "src\sim\LumoValveElm.ts"
+    "SizePromptDialog.tsx"   = "src\components\SizePromptDialog.tsx"
+    "SizePromptDialog.css"   = "src\components\SizePromptDialog.css"
     "APPLY-UPDATES.ps1"       = "APPLY-UPDATES.ps1"
 }
 

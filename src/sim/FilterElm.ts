@@ -56,6 +56,7 @@ export class FilterElm extends CircuitElm {
     this.drawDots(dc, this.point1, this.lead1, this.curcount)
     this.drawDots(dc, this.point2, this.lead2, -this.curcount)
     this.drawPosts(dc)
+    this.drawPortSizeLabels(dc)
   }
 
   getInfo(arr: string[]): void {

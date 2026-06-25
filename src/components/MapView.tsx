@@ -9,8 +9,9 @@ import { SimulationManager } from '../sim/SimulationManager'
 import { ContextMenu } from './ContextMenu'
 import { DeviceConfigDialog } from './DeviceConfigDialog'
 import { BlockConfigDialog } from './BlockConfigDialog'
+import { SizePromptDialog } from './SizePromptDialog'
 import { ValidationToast } from './ValidationToast'
-import { validatePlacement, validateNetwork } from '../sim/ConnectionValidator'
+import { validatePlacement, validateNetwork, findSharedNodes } from '../sim/ConnectionValidator'
 import { LumoValveElm } from '../sim/LumoValveElm'
 import './MapView.css'
 
@@ -140,6 +141,10 @@ export function MapView({ activeTool, activeElementType, elements, onElementsCha
   const [toolMenu, setToolMenu] = useState<{ x: number; y: number } | null>(null)
   const [editElm, setEditElm] = useState<CircuitElm | null>(null)
   const [blockElm, setBlockElm] = useState<LumoValveElm | null>(null)
+  const [sizePrompt, setSizePrompt] = useState<{
+    elmA: CircuitElm; portA: number; sizeA: string; labelA: string
+    elmB: CircuitElm; portB: number; sizeB: string; labelB: string
+  } | null>(null)
   const [validationWarnings, setValidationWarnings] = useState<{ rule: number; message: string }[]>([])
   
 
@@ -727,9 +732,29 @@ export function MapView({ activeTool, activeElementType, elements, onElementsCha
           const placementWarnings = validatePlacement(dragElmRef.current, elementsRef.current)
           const networkWarnings   = validateNetwork(newElms)
           const allWarnings = [...placementWarnings, ...networkWarnings]
-          // Deduplicate by message
+
+          // Check for size issues — show prompt instead of just warning
+          const sizeWarning = allWarnings.find(w => w.rule === 3)
+          const otherWarnings = allWarnings.filter(w => w.rule !== 3)
+
+          if (sizeWarning) {
+            const nodes = findSharedNodes(dragElmRef.current, elementsRef.current)
+            if (nodes.length > 0) {
+              const node = nodes[0]
+              const typeIdA = dragElmRef.current.getXmlDumpType()
+              const typeIdB = node.existingElm.getXmlDumpType()
+              const sizeA = (dragElmRef.current as any)._portSizeCodes?.[node.newPostIndex] ?? 'x'
+              const sizeB = (node.existingElm as any)._portSizeCodes?.[node.existingPostIndex] ?? 'x'
+              setSizePrompt({
+                elmA: dragElmRef.current, portA: node.newPostIndex, sizeA, labelA: typeIdA,
+                elmB: node.existingElm, portB: node.existingPostIndex, sizeB, labelB: typeIdB,
+              })
+            }
+          }
+
+          // Deduplicate non-size warnings
           const seen = new Set<string>()
-          const unique = allWarnings.filter(w => {
+          const unique = otherWarnings.filter(w => {
             if (seen.has(w.message)) return false
             seen.add(w.message)
             return true
@@ -936,6 +961,28 @@ export function MapView({ activeTool, activeElementType, elements, onElementsCha
         <ValidationToast
           warnings={validationWarnings}
           onClose={() => setValidationWarnings([])}
+        />
+      )}
+      {sizePrompt && (
+        <SizePromptDialog
+          labelA={sizePrompt.labelA}
+          sizeA={sizePrompt.sizeA}
+          labelB={sizePrompt.labelB}
+          sizeB={sizePrompt.sizeB}
+          onResolve={(code) => {
+            // Apply size to both ports
+            if (!(sizePrompt.elmA as any)._portSizeCodes) (sizePrompt.elmA as any)._portSizeCodes = []
+            if (!(sizePrompt.elmB as any)._portSizeCodes) (sizePrompt.elmB as any)._portSizeCodes = []
+            ;(sizePrompt.elmA as any)._portSizeCodes[sizePrompt.portA] = code
+            ;(sizePrompt.elmB as any)._portSizeCodes[sizePrompt.portB] = code
+            setSizePrompt(null)
+            onElementsChange([...elementsRef.current])
+          }}
+          onCancel={() => {
+            // Remove the last placed element
+            onElementsChange(elementsRef.current.filter(e => e !== sizePrompt.elmA))
+            setSizePrompt(null)
+          }}
         />
       )}
       {blockElm && (

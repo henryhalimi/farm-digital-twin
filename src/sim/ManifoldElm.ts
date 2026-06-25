@@ -109,6 +109,7 @@ export class ManifoldElm extends CircuitElm {
     }
 
     this.drawPosts(dc)
+    this.drawPortSizeLabels(dc)
   }
 
   getInfo(arr: string[]): void {

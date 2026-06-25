@@ -153,8 +153,41 @@ export class PipeElm extends CircuitElm {
     this.curcount += this.current * dc.currentMult
     this.drawDots(dc, this.point1, this.point2, this.curcount)
 
+    // ── Size label ────────────────────────────────────────────────────────────
+    this.drawSizeLabel(ctx, scale)
+
     // Endpoint posts
     this.drawPosts(dc)
+  }
+
+  private drawSizeLabel(ctx: CanvasRenderingContext2D, scale: number): void {
+    const sizeCode = (this as any)._portSizeCodes?.[0] ?? 'x'
+    const SIZES: Record<string, string> = {
+      A:'1/8"',B:'1/4"',C:'3/8"',D:'1/2"',E:'5/8"',F:'3/4"',
+      G:'1"',H:'1-1/4"',I:'1-1/2"',J:'2"',K:'2-1/2"',
+      L:'3"',M:'4"',N:'5"',O:'6"',P:'8"',Q:'10"'
+    }
+    const label = sizeCode === 'x' ? '?' : `${sizeCode} ${SIZES[sizeCode] ?? ''}`
+    const color = sizeCode === 'x' ? '#ffaa00' : '#00ccff'
+
+    const mx = (this.point1.x + this.point2.x) / 2
+    const my = (this.point1.y + this.point2.y) / 2
+    const dx = this.point2.x - this.point1.x
+    const dy = this.point2.y - this.point1.y
+    const len = Math.sqrt(dx * dx + dy * dy) || 1
+    const px = -dy / len, py = dx / len
+    const offset = 10 / scale
+    const lx = mx + px * offset
+    const ly = my + py * offset
+
+    const fontSize = Math.max(7 / scale, 2.5)
+    ctx.save()
+    ctx.font = `bold ${fontSize}px sans-serif`
+    ctx.textAlign = 'center'
+    ctx.textBaseline = 'middle'
+    ctx.fillStyle = color
+    ctx.fillText(label, lx, ly)
+    ctx.restore()
   }
 
   // ── Info display ───────────────────────────────────────────────────────────

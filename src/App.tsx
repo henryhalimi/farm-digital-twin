@@ -273,7 +273,20 @@ function App() {
         onElementTypeChange={(t) => { setActiveElementType(t); setActiveTool('draw') }}
         elementCount={elements.length}
         simRunning={simRunning}
-        onSimRunningChange={setSimRunning}
+        onSimRunningChange={(running) => {
+          if (running) {
+            // Check for unresolved port sizes before allowing simulation
+            const unresolved = elements.filter(elm => {
+              const sizes: string[] = (elm as any)._portSizeCodes ?? []
+              return sizes.some(s => s === 'x') || sizes.length === 0
+            })
+            if (unresolved.length > 0) {
+              alert(`Cannot simulate: ${unresolved.length} device(s) have unassigned port sizes.\nRight-click each device and assign pipe sizes first.`)
+              return
+            }
+          }
+          setSimRunning(running)
+        }}
       />
       <div className="main-view">
         <MapView
