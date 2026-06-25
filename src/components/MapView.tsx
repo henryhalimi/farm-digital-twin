@@ -738,6 +738,9 @@ export function MapView({ activeTool, activeElementType, elements, onElementsCha
           const sizeWarning = allWarnings.find(w => w.rule === 3)
           const otherWarnings = allWarnings.filter(w => w.rule !== 3)
 
+          console.log('All warnings:', allWarnings.map(w => `Rule ${w.rule}: ${w.message}`))
+          console.log('Size warning:', sizeWarning?.message ?? 'none')
+
           if (sizeWarning) {
             const nodes = findSharedNodes(dragElmRef.current, elementsRef.current)
             console.log('Size warning fired, shared nodes:', nodes.length, 'warning:', sizeWarning.message)
@@ -985,11 +988,11 @@ export function MapView({ activeTool, activeElementType, elements, onElementsCha
             ;(sizePrompt.elmA as any)._portSizeCodes[sizePrompt.portA] = code
             ;(sizePrompt.elmB as any)._portSizeCodes[sizePrompt.portB] = code
             setSizePrompt(null)
-            // Now commit the element
+            // Commit element and restart simulation
             onElementsChange([...elementsRef.current, sizePrompt.elmA])
+            onSimRunningChange?.(true)
           }}
           onCancel={() => {
-            // Element was not committed — just close dialog
             setSizePrompt(null)
           }}
         />
