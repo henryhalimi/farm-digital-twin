@@ -743,7 +743,12 @@ export function MapView({ activeTool, activeElementType, elements, onElementsCha
 
           if (sizeWarning) {
             const nodes = findSharedNodes(dragElmRef.current, elementsRef.current)
-            console.log('Size warning fired, shared nodes:', nodes.length, 'warning:', sizeWarning.message)
+            console.log('Size warning fired, nodes:', nodes.length)
+            nodes.forEach((n, idx) => {
+              const sA = (dragElmRef.current as any)._portSizeCodes?.[n.newPostIndex] ?? 'x'
+              const sB = (n.existingElm as any)._portSizeCodes?.[n.existingPostIndex] ?? 'x'
+              console.log(`  Node ${idx}: new[${n.newPostIndex}]=${sA} existing[${n.existingPostIndex}]=${sB} (${n.existingElm.getXmlDumpType()})`)
+            })
             
             // Find the first node with a size issue
             const problemNode = nodes.find(node => {
