@@ -744,20 +744,25 @@ export function MapView({ activeTool, activeElementType, elements, onElementsCha
           if (sizeWarning) {
             const nodes = findSharedNodes(dragElmRef.current, elementsRef.current)
             console.log('Size warning fired, shared nodes:', nodes.length, 'warning:', sizeWarning.message)
-            if (nodes.length > 0) {
-              const node = nodes[0]
-              const typeIdA = dragElmRef.current.getXmlDumpType()
-              const typeIdB = node.existingElm.getXmlDumpType()
+            
+            // Find the first node with a size issue
+            const problemNode = nodes.find(node => {
               const sizeA = (dragElmRef.current as any)._portSizeCodes?.[node.newPostIndex] ?? 'x'
               const sizeB = (node.existingElm as any)._portSizeCodes?.[node.existingPostIndex] ?? 'x'
+              return sizeA === 'x' || sizeB === 'x' || sizeA !== sizeB
+            })
+
+            if (problemNode) {
+              const typeIdA = dragElmRef.current.getXmlDumpType()
+              const typeIdB = problemNode.existingElm.getXmlDumpType()
+              const sizeA = (dragElmRef.current as any)._portSizeCodes?.[problemNode.newPostIndex] ?? 'x'
+              const sizeB = (problemNode.existingElm as any)._portSizeCodes?.[problemNode.existingPostIndex] ?? 'x'
               console.log('Setting size prompt:', typeIdA, sizeA, typeIdB, sizeB)
-              // Stop simulation until size is resolved
               onSimRunningChange?.(false)
-              // Hold commit — don't call onElementsChange yet
               const pendingElm = dragElmRef.current
               setSizePrompt({
-                elmA: pendingElm, portA: node.newPostIndex, sizeA, labelA: typeIdA,
-                elmB: node.existingElm, portB: node.existingPostIndex, sizeB, labelB: typeIdB,
+                elmA: pendingElm, portA: problemNode.newPostIndex, sizeA, labelA: typeIdA,
+                elmB: problemNode.existingElm, portB: problemNode.existingPostIndex, sizeB, labelB: typeIdB,
               })
               dragElmRef.current = null
               redraw()
