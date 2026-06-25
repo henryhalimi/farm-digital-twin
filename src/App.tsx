@@ -275,13 +275,46 @@ function App() {
         simRunning={simRunning}
         onSimRunningChange={(running) => {
           if (running) {
-            // Check for unresolved port sizes before allowing simulation
-            const unresolved = elements.filter(elm => {
+            const SIZES: Record<string, string> = {
+              A:'1/8"',B:'1/4"',C:'3/8"',D:'1/2"',E:'5/8"',F:'3/4"',
+              G:'1"',H:'1-1/4"',I:'1-1/2"',J:'2"',K:'2-1/2"',
+              L:'3"',M:'4"',N:'5"',O:'6"',P:'8"',Q:'10"'
+            }
+            const issues: string[] = []
+
+            // Check 1: unresolved sizes
+            elements.forEach((elm, idx) => {
               const sizes: string[] = (elm as any)._portSizeCodes ?? []
-              return sizes.some(s => s === 'x') || sizes.length === 0
+              if (sizes.length === 0 || sizes.some(s => s === 'x')) {
+                issues.push(`Device ${idx + 1} (${elm.getXmlDumpType()}) has unassigned port sizes`)
+              }
             })
-            if (unresolved.length > 0) {
-              alert(`Cannot simulate: ${unresolved.length} device(s) have unassigned port sizes.\nRight-click each device and assign pipe sizes first.`)
+
+            // Check 2: size mismatches between connected elements
+            for (const elmA of elements) {
+              const sizesA: string[] = (elmA as any)._portSizeCodes ?? []
+              for (let pi = 0; pi < elmA.getPostCount(); pi++) {
+                const sizeA = sizesA[pi] ?? 'x'
+                if (sizeA === 'x') continue
+                const postA = elmA.getPost(pi)
+                for (const elmB of elements) {
+                  if (elmB === elmA) continue
+                  const sizesB: string[] = (elmB as any)._portSizeCodes ?? []
+                  for (let pj = 0; pj < elmB.getPostCount(); pj++) {
+                    const postB = elmB.getPost(pj)
+                    if (postA.x === postB.x && postA.y === postB.y) {
+                      const sizeB = sizesB[pj] ?? 'x'
+                      if (sizeB !== 'x' && sizeA !== sizeB) {
+                        issues.push(`Size mismatch: ${elmA.getXmlDumpType()} (${SIZES[sizeA]}) connected to ${elmB.getXmlDumpType()} (${SIZES[sizeB]})`)
+                      }
+                    }
+                  }
+                }
+              }
+            }
+
+            if (issues.length > 0) {
+              alert(`Cannot simulate — fix these issues first:\n\n${issues.slice(0, 5).join('\n')}${issues.length > 5 ? `\n...and ${issues.length - 5} more` : ''}`)
               return
             }
           }
@@ -306,6 +339,7 @@ function App() {
           onCopy={handleCopySelected}
           onPaste={() => handlePaste()}
           hasClipboard={hasClipboard}
+          onSimRunningChange={setSimRunning}
         />
       </div>
       {optionsOpen && (

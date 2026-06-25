@@ -129,9 +129,10 @@ interface MapViewProps {
   onCopy?: (elm?: CircuitElm) => void
   onPaste?: () => void
   hasClipboard?: boolean
+  onSimRunningChange?: (running: boolean) => void
 }
 
-export function MapView({ activeTool, activeElementType, elements, onElementsChange, simRunning, fitKey, onBeforeChange, mouseCircuitRef, simSpeed = 1, anchorKey, onToolChange, onElementTypeChange, onCut, onCopy, onPaste, hasClipboard = false }: MapViewProps) {
+export function MapView({ activeTool, activeElementType, elements, onElementsChange, simRunning, fitKey, onBeforeChange, mouseCircuitRef, simSpeed = 1, anchorKey, onToolChange, onElementTypeChange, onCut, onCopy, onPaste, hasClipboard = false, onSimRunningChange }: MapViewProps) {
   const mapDivRef = useRef<HTMLDivElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const mapRef = useRef<mapboxgl.Map | null>(null)
@@ -747,14 +748,14 @@ export function MapView({ activeTool, activeElementType, elements, onElementsCha
               const sizeA = (dragElmRef.current as any)._portSizeCodes?.[node.newPostIndex] ?? 'x'
               const sizeB = (node.existingElm as any)._portSizeCodes?.[node.existingPostIndex] ?? 'x'
               console.log('Setting size prompt:', typeIdA, sizeA, typeIdB, sizeB)
+              // Stop simulation until size is resolved
+              onSimRunningChange?.(false)
               // Hold commit — don't call onElementsChange yet
-              // Store pending element to commit after size resolved
               const pendingElm = dragElmRef.current
               setSizePrompt({
                 elmA: pendingElm, portA: node.newPostIndex, sizeA, labelA: typeIdA,
                 elmB: node.existingElm, portB: node.existingPostIndex, sizeB, labelB: typeIdB,
               })
-              // Don't commit yet — committed in onResolve/onCancel
               dragElmRef.current = null
               redraw()
               return
