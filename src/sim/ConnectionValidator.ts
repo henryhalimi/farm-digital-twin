@@ -96,8 +96,12 @@ export function validatePlacement(
   for (const node of sharedNodes) {
     const existingTypeId  = getTypeId(node.existingElm)
     const existingTypeDef = DEVICE_TYPE_MAP.get(existingTypeId)
+    console.log('Processing node:', newTypeId, '->', existingTypeId)
 
-    if (!newTypeDef || !existingTypeDef) continue
+    if (!newTypeDef || !existingTypeDef) {
+      console.log('Missing typeDef:', newTypeId, newTypeDef ? 'ok' : 'MISSING', existingTypeId, existingTypeDef ? 'ok' : 'MISSING')
+      continue
+    }
 
     // Guard: manifold has variable ports — use first available def if out of range
     const safePDef = (defs: typeof newTypeDef.fingerprint.ports, idx: number) =>
