@@ -841,43 +841,6 @@ export function MapView({ activeTool, activeElementType, elements, onElementsCha
         postDragIndex = -1
         clickDownElm = null
 
-        // ── Run validation after any drag that may have created connections ──
-        const allElms = elementsRef.current
-        const dragWarnings: typeof validationWarnings = []
-        for (const elm of allElms) {
-          const w = validatePlacement(elm, allElms.filter(e => e !== elm))
-          const sizeW = w.find(x => x.rule === 3)
-          if (sizeW) {
-            const nodes = findSharedNodes(elm, allElms.filter(e => e !== elm))
-            const problemNode = nodes.find(n => {
-              const sA = (elm as any)._portSizeCodes?.[n.newPostIndex] ?? 'x'
-              const sB = (n.existingElm as any)._portSizeCodes?.[n.existingPostIndex] ?? 'x'
-              return sA === 'x' || sB === 'x' || sA !== sB
-            })
-            if (problemNode) {
-              const sA = (elm as any)._portSizeCodes?.[problemNode.newPostIndex] ?? 'x'
-              const sB = (problemNode.existingElm as any)._portSizeCodes?.[problemNode.existingPostIndex] ?? 'x'
-              setSizePrompt({
-                elmA: elm, portA: problemNode.newPostIndex, sizeA: sA, labelA: elm.getXmlDumpType(),
-                elmB: problemNode.existingElm, portB: problemNode.existingPostIndex, sizeB: sB, labelB: problemNode.existingElm.getXmlDumpType(),
-              })
-              onSimRunningChange?.(false)
-              redraw()
-              return
-            }
-          }
-          const others = w.filter(x => x.rule !== 3)
-          dragWarnings.push(...others)
-        }
-        if (dragWarnings.length > 0) {
-          const seen = new Set<string>()
-          setValidationWarnings(dragWarnings.filter(w => {
-            if (seen.has(w.message)) return false
-            seen.add(w.message)
-            return true
-          }))
-        }
-
         redraw()
       }
 
