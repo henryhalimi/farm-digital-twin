@@ -728,6 +728,9 @@ export function MapView({ activeTool, activeElementType, elements, onElementsCha
         dragElmRef.current.drag(snapped.x, snapped.y)
         if (!dragElmRef.current.creationFailed()) {
           onBeforeChangeRef.current?.()
+          console.log('Placing:', dragElmRef.current.getXmlDumpType(),
+            'p0:', JSON.stringify(dragElmRef.current.getPost(0)),
+            'p1:', JSON.stringify(dragElmRef.current.getPost(1)))
           const newElms = [...elementsRef.current, dragElmRef.current]
           // ── Connection validation ─────────────────────────────────────
           const placementWarnings = validatePlacement(dragElmRef.current, elementsRef.current)
@@ -998,12 +1001,13 @@ export function MapView({ activeTool, activeElementType, elements, onElementsCha
             ;(sizePrompt.elmA as any)._portSizeCodes[sizePrompt.portA] = code
             ;(sizePrompt.elmB as any)._portSizeCodes[sizePrompt.portB] = code
             setSizePrompt(null)
-            // Commit element and restart simulation
             onElementsChange([...elementsRef.current, sizePrompt.elmA])
             onSimRunningChange?.(true)
           }}
           onCancel={() => {
+            // Discard element, keep simulation stopped
             setSizePrompt(null)
+            onSimRunningChange?.(false)
           }}
         />
       )}
