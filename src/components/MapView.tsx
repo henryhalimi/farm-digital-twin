@@ -1034,10 +1034,18 @@ export function MapView({ activeTool, activeElementType, elements, onElementsCha
           labelB={sizePrompt.labelB}
           sizeB={sizePrompt.sizeB}
           onResolve={(code) => {
+            // Set size on both elements at the connecting ports
             if (!(sizePrompt.elmA as any)._portSizeCodes) (sizePrompt.elmA as any)._portSizeCodes = []
             if (!(sizePrompt.elmB as any)._portSizeCodes) (sizePrompt.elmB as any)._portSizeCodes = []
             ;(sizePrompt.elmA as any)._portSizeCodes[sizePrompt.portA] = code
             ;(sizePrompt.elmB as any)._portSizeCodes[sizePrompt.portB] = code
+            // For pipes — set both ports to same size
+            if (sizePrompt.elmA.getXmlDumpType() === 'pp') {
+              ;(sizePrompt.elmA as any)._portSizeCodes[sizePrompt.portA === 0 ? 1 : 0] = code
+            }
+            if (sizePrompt.elmB.getXmlDumpType() === 'pp') {
+              ;(sizePrompt.elmB as any)._portSizeCodes[sizePrompt.portB === 0 ? 1 : 0] = code
+            }
             setSizePrompt(null)
             onElementsChange([...elementsRef.current, sizePrompt.elmA])
             onSimRunningChange?.(true)
