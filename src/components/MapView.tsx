@@ -728,9 +728,6 @@ export function MapView({ activeTool, activeElementType, elements, onElementsCha
         dragElmRef.current.drag(snapped.x, snapped.y)
         if (!dragElmRef.current.creationFailed()) {
           onBeforeChangeRef.current?.()
-          console.log('Placing:', dragElmRef.current.getXmlDumpType(),
-            'p0:', JSON.stringify(dragElmRef.current.getPost(0)),
-            'p1:', JSON.stringify(dragElmRef.current.getPost(1)))
           const newElms = [...elementsRef.current, dragElmRef.current]
           // ── Connection validation ─────────────────────────────────────
           const placementWarnings = validatePlacement(dragElmRef.current, elementsRef.current)
@@ -741,17 +738,9 @@ export function MapView({ activeTool, activeElementType, elements, onElementsCha
           const sizeWarning = allWarnings.find(w => w.rule === 3)
           const otherWarnings = allWarnings.filter(w => w.rule !== 3)
 
-          console.log('All warnings:', allWarnings.map(w => `Rule ${w.rule}: ${w.message}`))
-          console.log('Size warning:', sizeWarning?.message ?? 'none')
 
           if (sizeWarning) {
             const nodes = findSharedNodes(dragElmRef.current, elementsRef.current)
-            console.log('Size warning fired, nodes:', nodes.length)
-            nodes.forEach((n, idx) => {
-              const sA = (dragElmRef.current as any)._portSizeCodes?.[n.newPostIndex] ?? 'x'
-              const sB = (n.existingElm as any)._portSizeCodes?.[n.existingPostIndex] ?? 'x'
-              console.log(`  Node ${idx}: new[${n.newPostIndex}]=${sA} existing[${n.existingPostIndex}]=${sB} (${n.existingElm.getXmlDumpType()})`)
-            })
             
             // Find the first node with a size issue
             const problemNode = nodes.find(node => {
@@ -765,7 +754,6 @@ export function MapView({ activeTool, activeElementType, elements, onElementsCha
               const typeIdB = problemNode.existingElm.getXmlDumpType()
               const sizeA = (dragElmRef.current as any)._portSizeCodes?.[problemNode.newPostIndex] ?? 'x'
               const sizeB = (problemNode.existingElm as any)._portSizeCodes?.[problemNode.existingPostIndex] ?? 'x'
-              console.log('Setting size prompt:', typeIdA, sizeA, typeIdB, sizeB)
               onSimRunningChange?.(false)
               const pendingElm = dragElmRef.current
               setSizePrompt({

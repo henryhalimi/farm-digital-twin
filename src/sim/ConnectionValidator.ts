@@ -57,11 +57,6 @@ export function findSharedNodes(
   existingElements: CircuitElm[],
 ): SharedNode[] {
   const shared: SharedNode[] = []
-  console.log('findSharedNodes: new elm posts:')
-  for (let ni = 0; ni < newElm.getPostCount(); ni++) {
-    const np = newElm.getPost(ni)
-    console.log(`  new[${ni}]: (${np.x.toFixed(1)}, ${np.y.toFixed(1)})`)
-  }
   for (let ni = 0; ni < newElm.getPostCount(); ni++) {
     const np = newElm.getPost(ni)
     for (const existing of existingElements) {
@@ -70,13 +65,11 @@ export function findSharedNodes(
         const ep = existing.getPost(ei)
         const dist = Math.sqrt((np.x-ep.x)**2 + (np.y-ep.y)**2)
         if (dist < 2) {
-          console.log(`  MATCH: new[${ni}] (${np.x.toFixed(1)},${np.y.toFixed(1)}) == existing[${ei}] (${ep.x.toFixed(1)},${ep.y.toFixed(1)}) dist=${dist.toFixed(2)}`)
           shared.push({
             newElm, newPostIndex: ni,
             existingElm: existing, existingPostIndex: ei,
           })
         } else if (dist < 5) {
-          console.log(`  NEAR MISS: new[${ni}] (${np.x.toFixed(1)},${np.y.toFixed(1)}) vs existing[${ei}] (${ep.x.toFixed(1)},${ep.y.toFixed(1)}) dist=${dist.toFixed(2)}`)
         }
       }
     }
@@ -105,10 +98,8 @@ export function validatePlacement(
   for (const node of sharedNodes) {
     const existingTypeId  = getTypeId(node.existingElm)
     const existingTypeDef = DEVICE_TYPE_MAP.get(existingTypeId)
-    console.log('Processing node:', newTypeId, '->', existingTypeId)
 
     if (!newTypeDef || !existingTypeDef) {
-      console.log('Missing typeDef:', newTypeId, newTypeDef ? 'ok' : 'MISSING', existingTypeId, existingTypeDef ? 'ok' : 'MISSING')
       continue
     }
 
@@ -161,8 +152,6 @@ export function validatePlacement(
       const sizeA = (newElm as any)._portSizeCodes?.[node.newPostIndex] ?? npd.sizeCode
       const sizeB = (node.existingElm as any)._portSizeCodes?.[node.existingPostIndex] ?? epd.sizeCode
 
-      console.log(`Rule3 check: ${newTypeDef.label}[${node.newPostIndex}]=${sizeA} vs ${existingTypeDef.label}[${node.existingPostIndex}]=${sizeB}`)
-      console.log(`  _portSizeCodes A:`, (newElm as any)._portSizeCodes, `B:`, (node.existingElm as any)._portSizeCodes)
 
       if (sizeA !== 'x' && sizeB !== 'x' && sizeA !== sizeB) {
         // Both assigned but different — mismatch
