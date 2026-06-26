@@ -899,6 +899,14 @@ export function MapView({ activeTool, activeElementType, elements, onElementsCha
     }
 
     const onContextMenu = (e: MouseEvent) => {
+      // If currently drawing — cancel and reset on right-click
+      if (dragMode === 'draw' && dragElmRef.current) {
+        e.preventDefault()
+        dragElmRef.current = null
+        dragMode = 'none'
+        redraw()
+        return
+      }
       const elm = findHovered(e.clientX, e.clientY)
       if (elm) {
         e.preventDefault()
@@ -909,12 +917,29 @@ export function MapView({ activeTool, activeElementType, elements, onElementsCha
       }
     }
 
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        // Cancel any active drawing
+        if (dragElmRef.current) {
+          dragElmRef.current = null
+          dragMode = 'none'
+          redraw()
+        }
+        setContextMenu(null)
+        setToolMenu(null)
+        setSizePrompt(null)
+        setEditElm(null)
+        setBlockElm(null)
+      }
+    }
+
     canvas.addEventListener('mousedown', onMouseDown)
     window.addEventListener('mousemove', onMouseMove)
     window.addEventListener('mouseup', onMouseUp)
     canvas.addEventListener('wheel', onWheel, { passive: false })
     canvas.addEventListener('mouseleave', onMouseLeave)
     canvas.addEventListener('contextmenu', onContextMenu)
+    window.addEventListener('keydown', onKeyDown)
 
     return () => {
       canvas.removeEventListener('mousedown', onMouseDown)
@@ -923,6 +948,7 @@ export function MapView({ activeTool, activeElementType, elements, onElementsCha
       canvas.removeEventListener('wheel', onWheel)
       canvas.removeEventListener('mouseleave', onMouseLeave)
       canvas.removeEventListener('contextmenu', onContextMenu)
+      window.removeEventListener('keydown', onKeyDown)
     }
   }, [onElementsChange, redraw])
 
@@ -968,9 +994,40 @@ export function MapView({ activeTool, activeElementType, elements, onElementsCha
   }, [onPaste])
 
   const handleEditApply = useCallback(() => {
+    // Check if any manifold had port positions change — move connected pipes
+    for (const elm of elementsRef.current) {
+      const oldPosts: {x:number,y:number}[] | undefined = (elm as any)._oldOutputPosts
+      const newPosts: {x:number,y:number}[] | undefined = (elm as any)._newOutputPosts
+      if (!oldPosts || !newPosts) continue
+
+      // For each old post position, find connected pipe endpoints and move them
+      for (let i = 0; i < Math.min(oldPosts.length, newPosts.length); i++) {
+        const op = oldPosts[i]
+        const np = newPosts[i]
+        if (op.x === np.x && op.y === np.y) continue
+        // Move any pipe endpoint that was at the old position
+        for (const other of elementsRef.current) {
+          if (other === elm) continue
+          for (let pi = 0; pi < other.getPostCount(); pi++) {
+            const post = other.getPost(pi)
+            const dist = Math.sqrt((post.x - op.x)**2 + (post.y - op.y)**2)
+            if (dist <= 3) {
+              const dx = np.x - op.x
+              const dy = np.y - op.y
+              other.movePoint(pi, dx, dy)
+            }
+          }
+        }
+      }
+      // Clear the change markers
+      delete (elm as any)._oldOutputPosts
+      delete (elm as any)._newOutputPosts
+    }
+
     analyzeFlagRef.current = true
+    onElementsChange([...elementsRef.current])
     redraw()
-  }, [redraw])
+  }, [redraw, onElementsChange])
 
   return (
     <div className="map-wrapper">

@@ -126,9 +126,16 @@ export class ManifoldElm extends CircuitElm {
 
   setEditValue(n: number, ei: EditInfo): void {
     if (n === 0) {
+      const oldCount = this.outputCount
+      const oldPosts = this.outputPosts.map(p => ({ ...p }))
       this.outputCount = Math.max(2, Math.round(ei.value))
       this._setupOutputs()
       this.setPoints()
+      // Store old post positions so MapView can move connected pipes
+      if (this.outputCount !== oldCount) {
+        ;(this as any)._oldOutputPosts = oldPosts
+        ;(this as any)._newOutputPosts = this.outputPosts.map(p => ({ ...p }))
+      }
     }
   }
 
