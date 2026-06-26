@@ -9,9 +9,8 @@ import { SimulationManager } from '../sim/SimulationManager'
 import { ContextMenu } from './ContextMenu'
 import { DeviceConfigDialog } from './DeviceConfigDialog'
 import { BlockConfigDialog } from './BlockConfigDialog'
-import { SizePromptDialog } from './SizePromptDialog'
 import { ValidationToast } from './ValidationToast'
-import { validatePlacement, validateNetwork, findSharedNodes } from '../sim/ConnectionValidator'
+import { validatePlacement, validateNetwork } from '../sim/ConnectionValidator'
 import { LumoValveElm } from '../sim/LumoValveElm'
 import './MapView.css'
 
@@ -129,10 +128,9 @@ interface MapViewProps {
   onCopy?: (elm?: CircuitElm) => void
   onPaste?: () => void
   hasClipboard?: boolean
-  onSimRunningChange?: (running: boolean) => void
 }
 
-export function MapView({ activeTool, activeElementType, elements, onElementsChange, simRunning, fitKey, onBeforeChange, mouseCircuitRef, simSpeed = 1, anchorKey, onToolChange, onElementTypeChange, onCut, onCopy, onPaste, hasClipboard = false, onSimRunningChange }: MapViewProps) {
+export function MapView({ activeTool, activeElementType, elements, onElementsChange, simRunning, fitKey, onBeforeChange, mouseCircuitRef, simSpeed = 1, anchorKey, onToolChange, onElementTypeChange, onCut, onCopy, onPaste, hasClipboard = false }: MapViewProps) {
   const mapDivRef = useRef<HTMLDivElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const mapRef = useRef<mapboxgl.Map | null>(null)
@@ -142,10 +140,6 @@ export function MapView({ activeTool, activeElementType, elements, onElementsCha
   const [toolMenu, setToolMenu] = useState<{ x: number; y: number } | null>(null)
   const [editElm, setEditElm] = useState<CircuitElm | null>(null)
   const [blockElm, setBlockElm] = useState<LumoValveElm | null>(null)
-  const [sizePrompt, setSizePrompt] = useState<{
-    elmA: CircuitElm; portA: number; sizeA: string; labelA: string
-    elmB: CircuitElm; portB: number; sizeB: string; labelB: string
-  } | null>(null)
   const [validationWarnings, setValidationWarnings] = useState<{ rule: number; message: string }[]>([])
   
 
@@ -728,59 +722,14 @@ export function MapView({ activeTool, activeElementType, elements, onElementsCha
         dragElmRef.current.drag(snapped.x, snapped.y)
         if (!dragElmRef.current.creationFailed()) {
           onBeforeChangeRef.current?.()
-          console.log('Placing:', dragElmRef.current.getXmlDumpType(),
-            'p0:', JSON.stringify(dragElmRef.current.getPost(0)),
-            'p1:', JSON.stringify(dragElmRef.current.getPost(1)))
           const newElms = [...elementsRef.current, dragElmRef.current]
           // ── Connection validation ─────────────────────────────────────
           const placementWarnings = validatePlacement(dragElmRef.current, elementsRef.current)
           const networkWarnings   = validateNetwork(newElms)
           const allWarnings = [...placementWarnings, ...networkWarnings]
-
-          // Check for size issues — show prompt instead of just warning
-          const sizeWarning = allWarnings.find(w => w.rule === 3)
-          const otherWarnings = allWarnings.filter(w => w.rule !== 3)
-
-          console.log('All warnings:', allWarnings.map(w => `Rule ${w.rule}: ${w.message}`))
-          console.log('Size warning:', sizeWarning?.message ?? 'none')
-
-          if (sizeWarning) {
-            const nodes = findSharedNodes(dragElmRef.current, elementsRef.current)
-            console.log('Size warning fired, nodes:', nodes.length)
-            nodes.forEach((n, idx) => {
-              const sA = (dragElmRef.current as any)._portSizeCodes?.[n.newPostIndex] ?? 'x'
-              const sB = (n.existingElm as any)._portSizeCodes?.[n.existingPostIndex] ?? 'x'
-              console.log(`  Node ${idx}: new[${n.newPostIndex}]=${sA} existing[${n.existingPostIndex}]=${sB} (${n.existingElm.getXmlDumpType()})`)
-            })
-            
-            // Find the first node with a size issue
-            const problemNode = nodes.find(node => {
-              const sizeA = (dragElmRef.current as any)._portSizeCodes?.[node.newPostIndex] ?? 'x'
-              const sizeB = (node.existingElm as any)._portSizeCodes?.[node.existingPostIndex] ?? 'x'
-              return sizeA === 'x' || sizeB === 'x' || sizeA !== sizeB
-            })
-
-            if (problemNode) {
-              const typeIdA = dragElmRef.current.getXmlDumpType()
-              const typeIdB = problemNode.existingElm.getXmlDumpType()
-              const sizeA = (dragElmRef.current as any)._portSizeCodes?.[problemNode.newPostIndex] ?? 'x'
-              const sizeB = (problemNode.existingElm as any)._portSizeCodes?.[problemNode.existingPostIndex] ?? 'x'
-              console.log('Setting size prompt:', typeIdA, sizeA, typeIdB, sizeB)
-              onSimRunningChange?.(false)
-              const pendingElm = dragElmRef.current
-              setSizePrompt({
-                elmA: pendingElm, portA: problemNode.newPostIndex, sizeA, labelA: typeIdA,
-                elmB: problemNode.existingElm, portB: problemNode.existingPostIndex, sizeB, labelB: typeIdB,
-              })
-              dragElmRef.current = null
-              redraw()
-              return
-            }
-          }
-
-          // Deduplicate non-size warnings
+          // Deduplicate by message
           const seen = new Set<string>()
-          const unique = otherWarnings.filter(w => {
+          const unique = allWarnings.filter(w => {
             if (seen.has(w.message)) return false
             seen.add(w.message)
             return true
@@ -989,28 +938,6 @@ export function MapView({ activeTool, activeElementType, elements, onElementsCha
           onClose={() => setValidationWarnings([])}
         />
       )}
-      {sizePrompt && (
-        <SizePromptDialog
-          labelA={sizePrompt.labelA}
-          sizeA={sizePrompt.sizeA}
-          labelB={sizePrompt.labelB}
-          sizeB={sizePrompt.sizeB}
-          onResolve={(code) => {
-            if (!(sizePrompt.elmA as any)._portSizeCodes) (sizePrompt.elmA as any)._portSizeCodes = []
-            if (!(sizePrompt.elmB as any)._portSizeCodes) (sizePrompt.elmB as any)._portSizeCodes = []
-            ;(sizePrompt.elmA as any)._portSizeCodes[sizePrompt.portA] = code
-            ;(sizePrompt.elmB as any)._portSizeCodes[sizePrompt.portB] = code
-            setSizePrompt(null)
-            onElementsChange([...elementsRef.current, sizePrompt.elmA])
-            onSimRunningChange?.(true)
-          }}
-          onCancel={() => {
-            // Discard element, keep simulation stopped
-            setSizePrompt(null)
-            onSimRunningChange?.(false)
-          }}
-        />
-      )}
       {blockElm && (
         <BlockConfigDialog
           elm={blockElm}
@@ -1021,7 +948,6 @@ export function MapView({ activeTool, activeElementType, elements, onElementsCha
       {editElm && (
         <DeviceConfigDialog
           elm={editElm}
-          elements={elementsRef.current}
           onClose={() => setEditElm(null)}
           onApply={() => handleEditApply()}
         />

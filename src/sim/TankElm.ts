@@ -119,7 +119,6 @@ export class TankElm extends CircuitElm {
     this.drawDots(dc, this.point1, this.lead1, this.curcount)
     this.drawDots(dc, this.point2, this.lead2, -this.curcount)
     this.drawPosts(dc)
-    this.drawPortSizeLabels(dc)
   }
 
   getInfo(arr: string[]): void {
@@ -136,13 +135,13 @@ export class TankElm extends CircuitElm {
 
   getEditInfo(n: number): EditInfo | null {
     if (n === 0) return { name: 'Elevation above ground (ft)', value: this.elevationFt }
-    if (n === 1) return { name: 'Capacitance (gal/PSI)', value: this.capacitance }
+    if (n === 1) return { name: 'Capacity (gal)', value: this.capacitance }
     return null
   }
 
   setEditValue(n: number, ei: EditInfo): void {
     if (n === 0) this.elevationFt = Math.max(0, ei.value)
-    if (n === 1) this.capacitance = Math.max(0.001, ei.value)
+    if (n === 1) this.capacitance = Math.max(1, ei.value)
   }
 
   dumpXml(attrs: Record<string, string>): void {

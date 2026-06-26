@@ -40,7 +40,10 @@ $copied = 0
 Get-ChildItem $DownloadsPath | ForEach-Object {
     $file = $_
     $name = $file.Name
-    $baseName = $name -replace '(\w+?)(\d+)(\.\w+)$', '$1$3'
+    # Strip browser duplicate suffixes: "File (2).tsx" -> "File.tsx"
+    # Also strip trailing numbers: "File2.tsx" -> "File.tsx"
+    $baseName = $name -replace '\s*\(\d+\)(\.\w+)$', '$1'
+    $baseName = $baseName -replace '(\w+?)(\d+)(\.\w+)$', '$1$3'
 
     if ($destMap.ContainsKey($baseName)) {
         $dst = Join-Path $ProjectPath $destMap[$baseName]
