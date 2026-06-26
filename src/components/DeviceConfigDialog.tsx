@@ -223,10 +223,16 @@ export function DeviceConfigDialog({ elm, elements = [], onApply, onClose }: Dev
       elm.setEditValue(i, fields[i])
     }
 
-    // Store port size codes on element as custom attribute
-    // (elements will persist these via dumpXml extensions)
-    ;(elm as any)._portSizeCodes = portEntries.map(p => p.sizeCode)
-    ;(elm as any)._portDirections = portEntries.map(p => p.direction)
+    // Store port size codes on element
+    if (deviceTypeId === 'pipe') {
+      // Pipe has same size both ends
+      const pipeSize = portEntries[0]?.sizeCode ?? 'x'
+      ;(elm as any)._portSizeCodes = [pipeSize, pipeSize]
+      ;(elm as any)._portDirections = ['B', 'B']
+    } else {
+      ;(elm as any)._portSizeCodes = portEntries.map(p => p.sizeCode)
+      ;(elm as any)._portDirections = portEntries.map(p => p.direction)
+    }
 
     // ── Check for size conflicts with connected elements ──────────────────
     const newSizes: string[] = portEntries.map(p => p.sizeCode)
