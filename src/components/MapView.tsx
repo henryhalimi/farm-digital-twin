@@ -896,6 +896,10 @@ export function MapView({ activeTool, activeElementType, elements, onElementsCha
 
     const onMouseLeave = () => {
       if (mouseElmRef.current) { mouseElmRef.current = null; redraw() }
+      // Reset cursor if not in an active drag
+      if (dragMode !== 'element-drag' && dragMode !== 'post-drag') {
+        canvas.style.cursor = activeTool === 'pan' ? 'grab' : 'crosshair'
+      }
     }
 
     const onContextMenu = (e: MouseEvent) => {
@@ -919,12 +923,11 @@ export function MapView({ activeTool, activeElementType, elements, onElementsCha
 
     const onKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
-        // Cancel any active drawing
-        if (dragElmRef.current) {
-          dragElmRef.current = null
-          dragMode = 'none'
-          redraw()
-        }
+        dragElmRef.current = null
+        dragMode = 'none'
+        postDragElm = null
+        canvas.style.cursor = activeTool === 'pan' ? 'grab' : 'crosshair'
+        redraw()
         setContextMenu(null)
         setToolMenu(null)
         setSizePrompt(null)
