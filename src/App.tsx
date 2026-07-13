@@ -8,7 +8,12 @@ import { saveCircuit, loadCircuit } from './sim/CircuitSerializer'
 import { useUndoRedo } from './hooks/useUndoRedo'
 import { UIManager } from './sim/UIManager'
 import { OptionsDialog } from './components/OptionsDialog'
+import { setApiKey } from './sim/LumoApi'
 import './App.css'
+
+// Initialize Lumo API key from environment variable
+// Set VITE_LUMO_API_KEY in your .env.local file
+setApiKey(import.meta.env.VITE_LUMO_API_KEY ?? '')
 
 function App() {
   const [activeTool, setActiveTool] = useState<Tool>('select')

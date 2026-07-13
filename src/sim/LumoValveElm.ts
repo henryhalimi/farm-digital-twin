@@ -2,21 +2,47 @@ import { type DrawContext } from './CircuitElm'
 import { ValveElm } from './ValveElm'
 import { getImage, isReady } from './ImageLoader'
 import type { BlockData } from './BlockData'
+import { openValve, closeValve } from './LumoApi'
 
-/**
- * Lumo smart valve — same stamp/toggle logic as ValveElm but drawn with
- * valve-icon.svg as a square centered on the body (higher default resistance).
- */
 export class LumoValveElm extends ValveElm {
-  // Block data attached to this valve
   _blockData?: BlockData
+  _apiError?: string    // last API error message
+  _apiPending = false   // true while waiting for API response
 
   constructor(x: number, y: number, x2?: number, y2?: number, flags = 0) {
     super(x, y, x2, y2, flags)
-    this.openResistance = 1  // higher resistance than generic valve
+    this.openResistance = 1
   }
 
   getXmlDumpType(): string { return 'lv' }
+
+  // Override toggle to also call the physical valve API
+  toggle(): void {
+    const deviceId = this._blockData?.deviceId
+    if (!deviceId) {
+      // No device linked — just toggle locally
+      super.toggle()
+      return
+    }
+
+    // Toggle locally first for instant feedback
+    super.toggle()
+    this._apiPending = true
+    this._apiError = undefined
+
+    const command = this.position === 1
+      ? openValve(deviceId)
+      : closeValve(deviceId)
+
+    command
+      .then(() => { this._apiPending = false })
+      .catch((err: Error) => {
+        this._apiPending = false
+        this._apiError = err.message
+        // Revert local toggle on failure
+        super.toggle()
+      })
+  }
 
   draw(dc: DrawContext, onLoad?: () => void): void {
     const { ctx, scale } = dc
@@ -56,6 +82,19 @@ export class LumoValveElm extends ValveElm {
     this.drawDots(dc, this.point2, this.lead2, -this.curcount)
     this.drawPosts(dc)
     this.drawPortSizeLabels(dc)
+
+    // ── API status indicator ──────────────────────────────────────────────
+    if (this._apiPending || this._apiError) {
+      const cx = (this.lead1.x + this.lead2.x) / 2
+      const cy = (this.lead1.y + this.lead2.y) / 2
+      const r = 4 / scale
+      ctx.save()
+      ctx.beginPath()
+      ctx.arc(cx, cy, r, 0, Math.PI * 2)
+      ctx.fillStyle = this._apiError ? '#ff4444' : '#ffaa00'
+      ctx.fill()
+      ctx.restore()
+    }
 
     // ── Draw block label above valve ──────────────────────────────────────
     this.drawBlockLabel(ctx, scale)

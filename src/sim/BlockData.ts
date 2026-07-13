@@ -71,9 +71,12 @@ export interface BlockData {
 
   // Irrigation
   irrigationType: IrrigationType
-  emitterCount:   number        // total emitters in block
-  emitterRating:  number        // GPH per emitter (drip/microspray)
-  operatingPSI:   number        // design pressure at emitter
+  emitterCount:   number
+  emitterRating:  number
+  operatingPSI:   number
+
+  // Backend device link
+  deviceId?:      string    // Lumo device UUID — links twin to physical valve
 
   // GPS (populated later by field tech)
   lat?:           number

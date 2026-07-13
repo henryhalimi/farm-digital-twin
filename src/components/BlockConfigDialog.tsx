@@ -156,6 +156,16 @@ export function BlockConfigDialog({ elm, onApply, onClose }: BlockConfigDialogPr
                     onChange={e => setField('plantCount', parseInt(e.target.value) || 0)}
                   />
                 </div>
+                <div className="bcd-field">
+                  <label>Device ID</label>
+                  <input
+                    type="text"
+                    placeholder="Lumo device UUID"
+                    value={block.deviceId ?? ''}
+                    onChange={e => setField('deviceId', e.target.value)}
+                    style={{ fontFamily: 'monospace', fontSize: '11px' }}
+                  />
+                </div>
               </div>
 
               {/* Irrigation fields */}
