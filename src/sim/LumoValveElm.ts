@@ -2,12 +2,19 @@ import { type DrawContext } from './CircuitElm'
 import { ValveElm } from './ValveElm'
 import { getImage, isReady } from './ImageLoader'
 import type { BlockData } from './BlockData'
-import { openValve, closeValve } from './LumoApi'
+import { openValve, closeValve, getDeviceStatus } from './LumoApi'
+
+// Poll interval in ms — check real valve state every 10 seconds
+const POLL_INTERVAL = 10_000
 
 export class LumoValveElm extends ValveElm {
   _blockData?: BlockData
-  _apiError?: string    // last API error message
-  _apiPending = false   // true while waiting for API response
+  _apiError?: string
+  _apiPending = false
+
+  // Polling
+  private _pollTimer?: ReturnType<typeof setTimeout>
+  private _redrawCallback?: () => void  // set by MapView to trigger canvas redraw
 
   constructor(x: number, y: number, x2?: number, y2?: number, flags = 0) {
     super(x, y, x2, y2, flags)
@@ -16,16 +23,51 @@ export class LumoValveElm extends ValveElm {
 
   getXmlDumpType(): string { return 'lv' }
 
-  // Override toggle to also call the physical valve API
+  // Called by MapView to give this element a way to trigger redraws
+  setRedrawCallback(fn: () => void): void {
+    this._redrawCallback = fn
+    this.startPolling()
+  }
+
+  startPolling(): void {
+    this.stopPolling()
+    const deviceId = this._blockData?.deviceId
+    if (!deviceId) return
+    const poll = async () => {
+      try {
+        const status = await getDeviceStatus(deviceId)
+        const shouldBeOpen = status.valveState === 'open'
+        const isOpen = this.position === 1
+        if (shouldBeOpen !== isOpen) {
+          // Backend state differs from local — sync to backend
+          this.position = shouldBeOpen ? 1 : 0
+          this._redrawCallback?.()
+        }
+        this._apiError = undefined
+      } catch (err) {
+        // Silent — don't interrupt UX for poll failures
+      }
+      this._pollTimer = setTimeout(poll, POLL_INTERVAL)
+    }
+    // Start first poll after a short delay
+    this._pollTimer = setTimeout(poll, 2000)
+  }
+
+  stopPolling(): void {
+    if (this._pollTimer) {
+      clearTimeout(this._pollTimer)
+      this._pollTimer = undefined
+    }
+  }
+
+  // Toggle sends command to physical valve
   toggle(): void {
     const deviceId = this._blockData?.deviceId
     if (!deviceId) {
-      // No device linked — just toggle locally
       super.toggle()
       return
     }
 
-    // Toggle locally first for instant feedback
     super.toggle()
     this._apiPending = true
     this._apiError = undefined
@@ -35,12 +77,12 @@ export class LumoValveElm extends ValveElm {
       : closeValve(deviceId)
 
     command
-      .then(() => { this._apiPending = false })
+      .then(() => { this._apiPending = false; this._redrawCallback?.() })
       .catch((err: Error) => {
         this._apiPending = false
         this._apiError = err.message
-        // Revert local toggle on failure
-        super.toggle()
+        super.toggle()  // revert on failure
+        this._redrawCallback?.()
       })
   }
 
@@ -96,7 +138,6 @@ export class LumoValveElm extends ValveElm {
       ctx.restore()
     }
 
-    // ── Draw block label above valve ──────────────────────────────────────
     this.drawBlockLabel(ctx, scale)
   }
 
@@ -104,33 +145,23 @@ export class LumoValveElm extends ValveElm {
     const block = this._blockData
     if (!block?.blockId && !block?.blockName) return
 
-    // Center of the element
     const cx = (this.point1.x + this.point2.x) / 2
     const cy = (this.point1.y + this.point2.y) / 2
-
-    // Offset above the valve — perpendicular to element direction
     const dx = this.point2.x - this.point1.x
     const dy = this.point2.y - this.point1.y
     const len = Math.sqrt(dx * dx + dy * dy) || 1
-    // perpendicular unit vector
-    const px = -dy / len
-    const py =  dx / len
+    const px = -dy / len, py = dx / len
     const offset = Math.max(len * 0.8, 30)
     const lx = cx + px * offset
     const ly = cy + py * offset
 
     ctx.save()
-
-    // Scale font to canvas
     const baseFontSize = Math.max(10 / scale, 4)
 
-    // ── Block ID — large and bold ─────────────────────────────────────────
     if (block.blockId) {
       ctx.font = `bold ${baseFontSize * 1.4}px sans-serif`
       ctx.textAlign = 'center'
       ctx.textBaseline = 'bottom'
-
-      // Background pill
       const idText = `Block ${block.blockId}`
       const tw = ctx.measureText(idText).width
       const th = baseFontSize * 1.4
@@ -139,12 +170,10 @@ export class LumoValveElm extends ValveElm {
       ctx.beginPath()
       ctx.roundRect(lx - tw / 2 - pad, ly - th - pad, tw + pad * 2, th + pad * 2, pad)
       ctx.fill()
-
       ctx.fillStyle = '#88ff88'
       ctx.fillText(idText, lx, ly)
     }
 
-    // ── Block name — smaller below ID ─────────────────────────────────────
     if (block.blockName) {
       ctx.font = `${baseFontSize}px sans-serif`
       ctx.textAlign = 'center'
@@ -160,6 +189,7 @@ export class LumoValveElm extends ValveElm {
     arr[0] = 'Lumo valve'
     this.getBasicInfo(arr)
     arr[3] = this.position === 0 ? 'open' : 'closed'
+    if (this._blockData?.deviceId) arr[4] = `device: ${this._blockData.deviceId.slice(0, 8)}...`
   }
 
   static fromXml(elem: Element): LumoValveElm {

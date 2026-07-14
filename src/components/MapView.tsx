@@ -172,7 +172,7 @@ export function MapView({ activeTool, activeElementType, elements, onElementsCha
   useEffect(() => { onBeforeChangeRef.current = onBeforeChange }, [onBeforeChange])
   useEffect(() => {
     elementsRef.current = elements
-    analyzeFlagRef.current = true   // topology changed — re-analyze next frame
+    analyzeFlagRef.current = true
   }, [elements])
   const simSpeedRef = useRef(simSpeed)
   useEffect(() => { simSpeedRef.current = simSpeed }, [simSpeed])
@@ -353,7 +353,18 @@ export function MapView({ activeTool, activeElementType, elements, onElementsCha
     return () => { map.remove(); mapRef.current = null }
   }, [redraw])
 
-  useEffect(() => { redraw() }, [elements, redraw])
+  useEffect(() => {
+    // Wire redraw callback to all Lumo Valves for status polling
+    elements.forEach(elm => {
+      if (elm instanceof LumoValveElm) {
+        elm.setRedrawCallback(() => {
+          analyzeFlagRef.current = true
+          redraw()
+        })
+      }
+    })
+    redraw()
+  }, [elements, redraw])
 
   // ── Fit bounds when fitKey changes (e.g. after file load) ──────────────────
   useEffect(() => {
