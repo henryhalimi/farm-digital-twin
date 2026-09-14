@@ -5,4 +5,5 @@ import react from '@vitejs/plugin-react'
 export default defineConfig({
   base: '/farmnew-1a/',
   plugins: [react()],
+  server: { port: 3000 },
 })

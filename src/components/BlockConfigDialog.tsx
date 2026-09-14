@@ -262,11 +262,45 @@ export function BlockConfigDialog({ elm, onApply, onClose }: BlockConfigDialogPr
 
           {/* ── Config tab — technical valve config ─────────────────────── */}
           {activeTab === 'config' && (
-            <div className="bcd-placeholder">
-              Technical valve configuration.<br />
-              Open-resistance, port sizes, etc.<br />
-              <br />
-              (Handled in Device Config dialog)
+            <div>
+              <div className="bcd-section-label">Valve Model</div>
+              <div className="bcd-field">
+                <label>Main pipe size</label>
+                <select
+                  value={(elm as any)._portSizeCodes?.[0] ?? 'J'}
+                  onChange={e => {
+                    const code = e.target.value
+                    if (!(elm as any)._portSizeCodes) (elm as any)._portSizeCodes = []
+                    ;(elm as any)._portSizeCodes[0] = code  // main inlet
+                    ;(elm as any)._portSizeCodes[1] = code  // main outlet
+                    // utility ports stay at D (1/2")
+                    ;(elm as any)._portSizeCodes[2] = 'D'
+                    ;(elm as any)._portSizeCodes[3] = 'D'
+                  }}
+                >
+                  <option value="J">2" (J)</option>
+                  <option value="M">4" (M)</option>
+                </select>
+              </div>
+              <div className="bcd-field">
+                <label>Utility ports</label>
+                <span style={{ fontSize: '12px', color: '#888' }}>
+                  D — 1/2" (fixed, normally capped)
+                </span>
+              </div>
+              <div className="bcd-section-label">Valve Control</div>
+              <div className="bcd-field">
+                <label>Open resistance (Ω)</label>
+                <input
+                  type="number"
+                  min={0.001}
+                  step={0.1}
+                  defaultValue={(elm as any).openResistance ?? 1}
+                  onChange={e => {
+                    ;(elm as any).openResistance = parseFloat(e.target.value) || 1
+                  }}
+                />
+              </div>
             </div>
           )}
 
